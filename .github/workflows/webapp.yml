@@ -1,0 +1,80 @@
+---
+name: Webapp
+
+on: workflow_call
+
+jobs:
+  build-webapp:
+    name: webapp ${{ matrix.target }} (ubuntu-22.04)
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: 'mobile'
+          - target: 'desktop'
+    env:
+      BUILD_TYPE: Release
+      CMAKE_FLAGS: -DSPIRIT_BUILD_FOR_JS=ON
+      EMSCRIPTEN_VERSION: '3.1.38'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Emscripten
+        working-directory: ${{runner.workspace}}
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install $EMSCRIPTEN_VERSION
+          ./emsdk activate $EMSCRIPTEN_VERSION
+
+      - name: Create build folder
+        run: cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Configure (mobile)
+        if: matrix.target == 'mobile'
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: >
+          source ${{runner.workspace}}/emsdk/emsdk_env.sh;
+          cmake $GITHUB_WORKSPACE
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+          -DSPIRIT_UI_USE_IMGUI=OFF
+          $CMAKE_FLAGS
+          -DCMAKE_TOOLCHAIN_FILE=${{runner.workspace}}/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+
+      - name: Configure (desktop)
+        if: matrix.target == 'desktop'
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: >
+          source ${{runner.workspace}}/emsdk/emsdk_env.sh;
+          cmake $GITHUB_WORKSPACE
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+          -DSPIRIT_UI_USE_IMGUI=ON $CMAKE_FLAGS
+          -DCMAKE_TOOLCHAIN_FILE=${{runner.workspace}}/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+
+      - name: Build
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: |
+          source ${{runner.workspace}}/emsdk/emsdk_env.sh
+          cmake --build . --config $BUILD_TYPE -j 2
+
+      - name: Archive mobile web app
+        if: matrix.target == 'mobile'
+        uses: actions/upload-artifact@v4
+        with:
+          name: webapp-mobile
+          path: ui-web/
+          if-no-files-found: error
+
+      - name: Archive desktop web app
+        if: matrix.target == 'desktop'
+        uses: actions/upload-artifact@v4
+        with:
+          name: webapp-desktop
+          path: ui-cpp/ui-imgui/webapp/
+          if-no-files-found: error
+

@@ -1,0 +1,69 @@
+---
+name: Deploy
+
+on: workflow_call
+
+jobs:
+  deploy-package:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    env:
+      BUILD_TYPE: Release
+      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_BUNDLE_APP=ON
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install required system packages
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xorg-dev libglu1-mesa-dev libgtk-3-dev
+
+      - name: Create build folder
+        run: cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Configure
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
+
+      - name: Build
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: |
+          cmake --build . --config $BUILD_TYPE -j 2
+          cmake --install .
+          cmake --build . --config $BUILD_TYPE -j 2 --target package
+
+      - name: Archive ubuntu package
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: spirit-ubuntu
+          path: ${{runner.workspace}}/build/*.tar.gz
+          if-no-files-found: error
+
+      - name: Archive macOS package
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: spirit-macos
+          path: |
+            ${{runner.workspace}}/build/*.dmg
+            ${{runner.workspace}}/build/install/README.md
+            ${{runner.workspace}}/build/install/LICENSE.txt
+            ${{runner.workspace}}/build/install/VERSION.txt
+            ${{runner.workspace}}/build/install/licenses/
+          if-no-files-found: error
+
+      - name: Archive windows package
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: spirit-windows
+          path: ${{runner.workspace}}/build/*.zip
+          if-no-files-found: error
