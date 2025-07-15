@@ -1,7 +1,7 @@
 ---
 name: Build
 
-on: [push, pull_request]
+on: push
 
 jobs:
   build_wheels:
@@ -10,13 +10,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.22.0
+        uses: pypa/cibuildwheel@v3.0.1
         env:
           CIBW_BUILD: >
             cp311-*
@@ -27,14 +27,20 @@ jobs:
             *-win32
             *_i686
           CIBW_BEFORE_BUILD: >
-            cmake -B build -S .
+            python -m pip install --upgrade pip
+            && pip install numpy
+            && cmake -B build -S .
+            -DPython3_FIND_STRATEGY=LOCATION
             -DCMAKE_BUILD_TYPE=Release
             -DSPIRIT_BUILD_FOR_PYTHON=ON
-            -DSPIRIT_BUILD_TEST=OFF
+            -DSPIRIT_BUILD_TEST=ON
             -DSPIRIT_UI_CXX_USE_QT=OFF
             -DSPIRIT_UI_IMGUI=OFF
-            && cmake --build build -j2
+            && cmake --build build --config Release -j2
+            && ctest -C Release --test-dir build --output-on-failure
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+          CIBW_ENVIRONMENT: >
+            SPIRIT_ADD_VERSION_SUFFIX=${{ github.ref != 'refs/heads/master' }}
         with:
           package-dir: ./core/python
           output-dir: wheelhouse
@@ -42,5 +48,44 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          name: cibw-wheels-${{ matrix.os }}
           path: ./wheelhouse/*.whl
+
+  install_wheels:
+    name: Install wheels on ${{ matrix.os }} (python-${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    needs: build_wheels
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.11", "3.12"]
+
+    steps:
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Download built wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}
+          path: wheelhouse
+
+      - name: Install wheel in a clean env
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install wheelhouse/*.whl
+
+      - name: Smoke‑test import
+        shell: bash
+        run: |
+          python - <<'EOF'
+          import spirit
+          print("Imported version:", spirit.__version__)
+          from spirit import state
+          with state.State(quiet=False) as p_state:
+            pass
+          EOF
