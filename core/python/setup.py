@@ -19,12 +19,20 @@ CLASSIFIERS = [
     "Intended Audience :: Science/Research",
     "Natural Language :: English",
     "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
     "Programming Language :: C",
     "Programming Language :: C++",
     "Programming Language :: Python",
-    "Topic :: Scientific/Engineering",
-    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 INSTALL_REQUIRES = ["numpy"]
 
@@ -99,6 +107,7 @@ def make_version():
 if __name__ == "__main__":
     setup(
         name=NAME,
+        python_requires=">=3.11",
         description=find_meta("description"),
         long_description=read("README.md"),
         long_description_content_type="text/markdown",
