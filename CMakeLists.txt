@@ -166,6 +166,7 @@ elseif( UNIX )
     set( PLATFORM_NAME "UNIX" )
 elseif( WIN32 )
     set( PLATFORM_NAME "Win32" )
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     add_compile_definitions( NOMINMAX _CRT_SECURE_NO_WARNINGS )
 endif()
 ### Compiler-specific flags
