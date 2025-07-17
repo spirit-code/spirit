@@ -3,7 +3,7 @@ MESSAGE( STATUS ">> --------------------- Spirit -------------------------------
 
 
 ######### CMake Version ############################################
-cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+cmake_minimum_required( VERSION 3.15 FATAL_ERROR )
 ####################################################################
 
 
