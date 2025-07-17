@@ -106,7 +106,7 @@ endif()
 #----- Get git revision
 include( GetGitRevisionDescription )
 get_git_head_revision( GIT_REFSPEC GIT_SHA1 )
-string( SUBSTRING "${GIT_SHA1}" 0 13 GIT_REV )
+string( SUBSTRING "${GIT_SHA1}" 0 10 GIT_REV )
 #----- Meta information about the project
 set( META_PROJECT_NAME         "Spirit" )
 set( META_PROJECT_DESCRIPTION  "Optimizations and Dynamics Framework for atomistic Spin systems" )
