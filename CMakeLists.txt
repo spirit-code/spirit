@@ -275,14 +275,14 @@ install( DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/docs/
          COMPONENT spirit_root_files )
 install( FILES ${CMAKE_CURRENT_LIST_DIR}/README.md
                ${CMAKE_CURRENT_LIST_DIR}/VERSION.txt
-         DESTINATION ./
+         DESTINATION .
          COMPONENT spirit_root_files )
 
 if( SPIRIT_BUILD_FOR_CXX )
     install( DIRECTORY input DESTINATION bin COMPONENT spirit_root_files )
 endif()
 
-install( FILES ${CMAKE_CURRENT_LIST_DIR}/LICENSE.txt DESTINATION ./ COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/LICENSE.txt DESTINATION . COMPONENT spirit_licenses )
 
 install( FILES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/qhull/COPYING.txt DESTINATION licenses RENAME qhull.txt COMPONENT spirit_licenses )
 install( FILES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/fmt/LICENSE.rst   DESTINATION licenses RENAME fmt.rst   COMPONENT spirit_licenses )
