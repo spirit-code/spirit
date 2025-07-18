@@ -1,5 +1,5 @@
 ######### CMake Version ############################################
-cmake_minimum_required( VERSION 3.15 )
+cmake_minimum_required( VERSION 3.18 )
 ### Distinguish between Clang and AppleClang
 cmake_policy( SET CMP0025 NEW )
 ### Allow finding python virtual-environments
