@@ -60,17 +60,18 @@ class LLG_set_get(TestParameters):
         lambda_get = parameters.llg.get_damping(self.p_state)  # try get
         self.assertAlmostEqual(lambda_get, lambda_set)
 
-    def test_LLG_STT(self):
-        use_grad_set = True
+    def test_LLG_Spin_Current(self):
+        model_set = parameters.llg.SPIN_CURRENT_MODEL_MONOLAYER
         mag_set = 0.015
         direction_set = [1.0, 0.0, 0.0]  # NOTE: It will not work with tuples
-        parameters.llg.set_stt(
-            self.p_state, use_grad_set, mag_set, direction_set
+        parameters.llg.set_spin_current(
+            self.p_state, model_set, mag_set, direction_set
         )  # try set
-        stt_get = parameters.llg.get_stt(self.p_state)  # try get
-        self.assertEqual(stt_get[2], use_grad_set)
-        self.assertAlmostEqual(stt_get[0], mag_set)
-        self.assertAlmostEqual(stt_get[1], direction_set)
+        model, mag, direction = parameters.llg.get_spin_current(self.p_state)  # try get
+        self.assertEqual(model, model_set)
+        self.assertAlmostEqual(mag, mag_set)
+        for i in range(3):
+            self.assertAlmostEqual(direction[i], direction_set[i])
 
     def test_LLG_temperature(self):
         temp_set = 100
