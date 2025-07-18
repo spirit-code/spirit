@@ -160,9 +160,9 @@ dt                  = 1.0E-3
 renorm              = false
 
 ### Spin current model:
-### 'orbit_torque':    pinned monolayer approximation
-### 'transfer_torque': gradient approximation
-spin_current_model            = "transfer_torque"
+### 'gradient':  spin-orbit torque
+### 'monolayer': spin-transfer torque
+spin_current_model            = "monolayer"
 ### Spin current vector:
 ### proportional to the injected current density
 spin_current_vector.magnitude = 0.0

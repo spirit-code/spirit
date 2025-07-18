@@ -10,23 +10,23 @@ LLG Parameters
 Defintion of Spin Current Models
 --------------------------------------------------------------------
 
-### Sphere
+### Monolayer
 
 ```C
-LLG_SC_Model_Transfer_Torque            0
+LLG_SC_Model_Monolayer              0
 ```
 
-`Transfer_Torque`: Model a spin current applying a transfer torque using the pinned monolayer approximation.
+`Monolayer`: Model a spin current applying a transfer torque using the pinned monolayer approximation.
 
 
 
-### Cone
+### Gradient
 
 ```C
-LLG_SC_Model_Orbit_Torque               1
+LLG_SC_Model_Gradient               1
 ```
 
-`Orbit_Torque`: Model a spin current applying an orbit torque using the gradient approximation.
+`Gradient`: Model a spin current applying an orbit torque using the gradient approximation.
 
 
 
@@ -170,7 +170,7 @@ void Parameters_LLG_Set_Spin_Current(State * state, int model, scalar magnitude,
 
 Set the spin current configuration.
 
-- model: SC_Model_Orbit_Torque or SC_Model_Transfer_Torque
+- model: refer to SC_Model_* for available options
 - magnitude: current strength
 - direction: current direction or polarisation direction, array of shape (3)
 

@@ -15,8 +15,8 @@ namespace Data
 
 enum struct SC_Model
 {
-    TRANSFER_TORQUE = LLG_SC_Model_Transfer_Torque,
-    ORBIT_TORQUE    = LLG_SC_Model_Orbit_Torque,
+    MONOLAYER = LLG_SC_Model_Monolayer,
+    GRADIENT  = LLG_SC_Model_Gradient,
 };
 
 inline constexpr auto enum_table( SC_Model )
@@ -24,8 +24,8 @@ inline constexpr auto enum_table( SC_Model )
     using E = Utility::Enum::TableElementType<SC_Model>;
     return std::array{
         // clang-format off
-        E{ SC_Model::TRANSFER_TORQUE, "transfer_torque", "Monolayer (STT)", "Pinned Monolayer Approximation (Transfer Torque)" },
-        E{ SC_Model::ORBIT_TORQUE,    "orbit_torque",    "Gradient (SOT)",  "Gradient Approximation (Orbit Torque)"            },
+        E{ SC_Model::MONOLAYER, "monolayer", "Monolayer (STT)", "Pinned Monolayer Approximation (Transfer Torque)" },
+        E{ SC_Model::GRADIENT,    "gradient",    "Gradient (SOT)",  "Gradient Approximation (Orbit Torque)"            },
         // clang-format on
     };
 }
@@ -50,7 +50,7 @@ struct Parameters_Method_LLG : Parameters_Method_Solver
     scalar temperature_gradient_magnitude  = 0;
 
     // spin current model: gradient (SOT) or monolayer (STT) approximation
-    SC_Model spin_current_model = SC_Model::ORBIT_TORQUE;
+    SC_Model spin_current_model = SC_Model::GRADIENT;
     // spin current vector magnitude (prop to injected current density)
     scalar spin_current_vector_magnitude = 0;
     // spin current vector direction the interpretation depends on spin current model

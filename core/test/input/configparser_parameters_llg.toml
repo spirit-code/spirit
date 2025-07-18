@@ -19,7 +19,7 @@ dt                  = 1.0e-3
 renorm              = false
 force_convergence   = 10e-9
 
-spin_current_model  = "transfer_torque"
+spin_current_model  = "monolayer"
 spin_current_vector = [0.0, 1.0, 0.0]
 
 [method.llg.output]

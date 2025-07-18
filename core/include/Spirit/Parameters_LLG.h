@@ -17,9 +17,9 @@ LLG Parameters
 ```
 */
 // Monolayer approximation for spin current: transfer torque
-#define LLG_SC_Model_Transfer_Torque 0
+#define LLG_SC_Model_Monolayer 0
 // Gradient model for spin current: orbit torque
-#define LLG_SC_Model_Orbit_Torque 1
+#define LLG_SC_Model_Gradient 1
 
 /*
 Set Output
@@ -111,7 +111,7 @@ Parameters_LLG_Set_Non_Adiabatic_Damping( State * state, scalar beta, int idx_im
 /*
 Set the spin current configuration.
 
-- model: SC_Model_Orbit_Torque or SC_Model_Transfer_Torque
+- model: refer to SC_Model_* for available options
 - magnitude: current strength
 - direction: current direction or polarisation direction, array of shape (3)
 */

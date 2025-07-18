@@ -124,7 +124,7 @@ struct Method_LLG
             {
                 switch( parameters.spin_current_model )
                 {
-                    case Data::SC_Model::ORBIT_TORQUE:
+                    case Data::SC_Model::GRADIENT:
                     {
                         if( jacobians.size() != geometry.nos )
                             jacobians = field<Matrix3>( geometry.nos, Matrix3::Zero() );
@@ -148,7 +148,7 @@ struct Method_LLG
                                 } ) );
                         break;
                     }
-                    case Data::SC_Model::TRANSFER_TORQUE:
+                    case Data::SC_Model::MONOLAYER:
                     {
                         const Vector3 v1 = -dtg * a_j * ( damping - beta ) * s_c_vec;
                         const Vector3 v2 = -dtg * a_j * ( 1 + beta * damping ) * s_c_vec;

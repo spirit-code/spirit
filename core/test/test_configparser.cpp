@@ -305,7 +305,7 @@ TEST_CASE( "Parameters LLG: Parse config and check parsed values using the C-API
     const bool output_configuration_archive = false;
     const int output_configuration_filetype = 3;
 
-    const auto spin_current_model               = Data::SC_Model::TRANSFER_TORQUE;
+    const auto spin_current_model               = Data::SC_Model::MONOLAYER;
     const scalar spin_current_vector_magnitude  = 1.0;
     const Vector3 spin_current_vector_direction = { 0.0, 1.0, 0.0 };
 

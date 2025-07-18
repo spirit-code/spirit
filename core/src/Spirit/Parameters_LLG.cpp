@@ -320,13 +320,13 @@ try
 
     switch( image->llg_parameters->spin_current_model )
     {
-        case( Data::SC_Model::ORBIT_TORQUE ):
+        case( Data::SC_Model::GRADIENT ):
         {
             Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
                  "Spin Current: using the spin-orbit torque model (gradient approximation)", idx_image, idx_chain );
             break;
         }
-        case( Data::SC_Model::TRANSFER_TORQUE ):
+        case( Data::SC_Model::MONOLAYER ):
         {
             Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
                  "Spin Current: using the using the spin-transfer torque model (pinned monolayer approximation)",
@@ -347,7 +347,7 @@ void Parameters_LLG_Set_STT(
 {
     Log_deprecated( API, "Use Parameters_LLG_Set_Spin_Current() instead." );
 
-    const int model = use_gradient ? LLG_SC_Model_Orbit_Torque : LLG_SC_Model_Transfer_Torque;
+    const int model = use_gradient ? LLG_SC_Model_Gradient : LLG_SC_Model_Monolayer;
     Parameters_LLG_Set_Spin_Current( state, model, magnitude, normal, idx_image, idx_chain );
 }
 
@@ -601,7 +601,7 @@ void Parameters_LLG_Get_STT(
 {
     Log_deprecated( API, "Use Parameters_LLG_Get_Spin_Current() instead." );
 
-    int model = use_gradient ? LLG_SC_Model_Orbit_Torque : LLG_SC_Model_Transfer_Torque;
+    int model = use_gradient ? LLG_SC_Model_Gradient : LLG_SC_Model_Monolayer;
     Parameters_LLG_Get_Spin_Current( state, &model, magnitude, normal, idx_image, idx_chain );
-    *use_gradient = ( model == LLG_SC_Model_Orbit_Torque );
+    *use_gradient = ( model == LLG_SC_Model_Gradient );
 }

@@ -14,11 +14,11 @@ from spirit.spiritlib import _spirit
 
 ### ---------------------------------- Set ----------------------------------
 
-# Spin current model: transfer torque (pinned monolayer approximation)
-SPIN_CURRENT_MODEL_TRANSFER_TORQUE = 0
+# Spin current model: pinned monolayer approximation (transfer torque)
+SPIN_CURRENT_MODEL_MONOLAYER = 0
 
-# Spin current model: orbit torque (gradient approximation)
-SPIN_CURRENT_MODEL_ORBIT_TORQUE = 1
+# Spin current model: gradient approximation (orbit torque)
+SPIN_CURRENT_MODEL_GRADIENT = 1
 
 
 _LLG_Set_Output_Tag = _spirit.Parameters_LLG_Set_Output_Tag

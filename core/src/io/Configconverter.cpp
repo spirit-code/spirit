@@ -382,9 +382,9 @@ auto Parameters_Method_LLG( const std::string & config_file_name, const IO::Defa
             // config_file_handle.Read_Single(parameters.renorm_sd, "llg_renorm");
             {
                 using Data::SC_Model;
-                bool stt_use_gradient = parameters.spin_current_model == SC_Model::ORBIT_TORQUE;
+                bool stt_use_gradient = parameters.spin_current_model == SC_Model::GRADIENT;
                 config_file_handle.Read_Single( stt_use_gradient, "llg_stt_use_gradient" );
-                parameters.spin_current_model = stt_use_gradient ? SC_Model::ORBIT_TORQUE : SC_Model::TRANSFER_TORQUE;
+                parameters.spin_current_model = stt_use_gradient ? SC_Model::GRADIENT : SC_Model::MONOLAYER;
             }
             config_file_handle.Read_Single( parameters.spin_current_vector_magnitude, "llg_stt_magnitude" );
             config_file_handle.Read_Vector3( parameters.spin_current_vector_direction, "llg_stt_polarisation_normal" );
