@@ -1,6 +1,4 @@
 """
-Transition
-====================
 """
 
 from spirit.scalar import scalar

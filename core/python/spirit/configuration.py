@@ -1,7 +1,4 @@
 """
-Configuration
-====================
-
 Set various spin configurations, such as homogeneous domains, spirals or skyrmions.
 
 All configuration setters support the following arguments with default values:

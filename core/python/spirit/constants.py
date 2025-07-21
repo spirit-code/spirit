@@ -1,6 +1,4 @@
 """
-Constants
-====================
 """
 
 from spirit.scalar import scalar

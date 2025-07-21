@@ -46,8 +46,14 @@ sys.path.insert( 0, os.path.join( os.path.dirname( __file__ ), "core", "python" 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx_markdown_tables', 'myst_parser',
-              'sphinx.ext.intersphinx', 'sphinx.ext.coverage', 'sphinx.ext.autodoc']
+extensions = [
+    'sphinx_markdown_tables',
+    'myst_parser',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.coverage',
+    'sphinx.ext.apidoc',
+    'sphinx.ext.autodoc',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -102,7 +108,8 @@ exclude_patterns = [
     '.venv',
     '.github',
     '_build',
-    '../core/docs/python-api/spirit.rst',
+    'core/docs/python-api/apidoc/spirit.rst',
+    'core/docs/python-api/apidoc/modules.rst',
     'Thumbs.db',
     '.DS_Store',
 ]
@@ -210,76 +217,38 @@ texinfo_documents = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'python': ('https://docs.python.org/', None)}
 
+source_dir = os.path.abspath(os.path.dirname(__file__))
+package_dir = os.path.join(source_dir, 'core', 'python', 'spirit')
 
-def run_apidoc(_):
-    """Runs sphinx-apidoc when building the documentation.
-    Needs to be done in conf.py in order to include the APIdoc in the
-    build on readthedocs.
-    See also https://github.com/rtfd/readthedocs.org/issues/1139
-    """
-    source_dir = os.path.abspath(os.path.dirname(__file__))
-    apidoc_dir = os.path.join(source_dir, 'core', 'docs', 'python-api')
-    package_dir = os.path.join(source_dir, 'core', 'python', 'spirit')
+apidoc_exclude_patterns = [
+    '**/libSpirit.dylib',
+    '**/libSpirit.so',
+    '**/Spirit.dll',
+]
+
+apidoc_modules = [
+    {
+        'path': package_dir,
+        'destination': 'core/docs/python-api/apidoc',
+        'module_first': True,
+        'separate_modules': True,
+    }
+]
+
+def cmake_configure(_):
+    """generate required metadata with cmake"""
 
     import subprocess
-    cmd_path = 'sphinx-apidoc'
-    if hasattr(sys, 'real_prefix'):  # Check to see if we are in a virtualenv
-        # If we are, assemble the path manually
-        cmd_path = os.path.abspath(os.path.join(sys.prefix, 'bin', 'sphinx-apidoc'))
-
-    options = [
-        '-o', apidoc_dir, package_dir,
-        '--force',
-        '--no-headings',
-        '--module-first',
-        '--separate',
-        '--no-toc',
-        '--maxdepth', '4',
-    ]
-
-    build_dir = os.path.join(source_dir, 'build')
-    if not os.path.exists(build_dir):
-        os.mkdir(build_dir)
     subprocess.check_call([
             'cmake',
-            '..',
+            '-B build',
+            '-S .',
             '-DSPIRIT_BUILD_FOR_CXX=OFF',
             '-DSPIRIT_BUILD_TEST=ON',
             '-DSPIRIT_SKIP_HTST=ON',
         ],
-        cwd=build_dir
+        cwd=source_dir,
     )
-    subprocess.check_call(['make'], cwd=build_dir)
-
-    # See https://stackoverflow.com/a/30144019
-    env = os.environ.copy()
-    env["SPHINX_APIDOC_OPTIONS"] = ','.join(
-        [
-            'members',
-            'special-members',
-            'private-members',
-            'undoc-members',
-            'show-inheritance',
-        ]
-    )
-    subprocess.check_call([cmd_path] + options, env=env)
-
-    if not os.path.exists(apidoc_dir):
-        os.mkdir(apidoc_dir)
-
-    #####################
-    with open(os.path.join(apidoc_dir, 'parameters.rst'), "w") as parameters_file:
-        parameters_file.write("spirit.parameters\n==================================\n\n")
-        with open(os.path.join(apidoc_dir, 'spirit.parameters.mc.rst'), 'r') as generated_file:
-            parameters_file.write(generated_file.read())
-        with open(os.path.join(apidoc_dir, 'spirit.parameters.llg.rst'), 'r') as generated_file:
-            parameters_file.write(generated_file.read())
-        with open(os.path.join(apidoc_dir, 'spirit.parameters.gneb.rst'), 'r') as generated_file:
-            parameters_file.write(generated_file.read())
-        with open(os.path.join(apidoc_dir, 'spirit.parameters.ema.rst'), 'r') as generated_file:
-            parameters_file.write(generated_file.read())
-        with open(os.path.join(apidoc_dir, 'spirit.parameters.mmf.rst'), 'r') as generated_file:
-            parameters_file.write(generated_file.read())
 
 def setup(app):
-    app.connect('builder-inited', run_apidoc)
+    app.connect('builder-inited', cmake_configure)

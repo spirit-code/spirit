@@ -1,6 +1,4 @@
 """
-System
-====================
 """
 
 from spirit import parameters, spiritlib

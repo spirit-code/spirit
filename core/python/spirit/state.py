@@ -1,13 +1,11 @@
 """
-State
-====================
-
 The state contains the chain of spin systems (also called images).
 
 To create a new state with containing a single image and run a simple example
 of a **spin dynamics simulation**:
 
 .. code-block:: python
+
     # Import spirit
     from spirit import state
     from spirit import simulation
@@ -20,6 +18,7 @@ of a **spin dynamics simulation**:
 or call setup and delete manually:
 
 .. code-block:: python
+
     # Import spirit
     from spirit import state
     from spirit import simulation
