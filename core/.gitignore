@@ -427,6 +427,7 @@ instance/
 docs/_build/
 
 docs/**/apidoc/
+docs/**/xml/
 
 # PyBuilder
 target/

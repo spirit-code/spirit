@@ -3,8 +3,6 @@
 #define SPIRIT_CORE_LOG_H
 #include "DLL_Define_Export.h"
 
-#include <vector>
-
 struct State;
 
 /*
@@ -21,7 +19,7 @@ Definition of log levels and senders
 --------------------------------------------------------------------
 */
 
-// Levels
+/** Levels*/
 typedef enum
 {
     Log_Level_All       = 0,
@@ -33,7 +31,7 @@ typedef enum
     Log_Level_Debug     = 6
 } Spirit_Log_Level;
 
-// Senders
+/** Senders*/
 typedef enum
 {
     Log_Sender_All  = 0,
@@ -53,11 +51,13 @@ Logging functions
 --------------------------------------------------------------------
 */
 
-// Send a Log message
+/** Send a Log message*/
 PREFIX void Log_Send(
     State * state, Spirit_Log_Level level, Spirit_Log_Sender sender, const char * message, int idx_image = -1,
     int idx_chain = -1 ) SUFFIX;
 
+#ifdef __cplusplus
+#include <vector>
 // Get the entries from the Log and write new number of entries into given int
 // TODO: can this be written in a C-style way?
 namespace Utility
@@ -65,20 +65,21 @@ namespace Utility
 struct LogEntry;
 }
 std::vector<Utility::LogEntry> Log_Get_Entries( State * state ) SUFFIX;
+#endif
 
-// Append the Log to it's file
+/** Append the Log to it's file*/
 PREFIX void Log_Append( State * state ) SUFFIX;
 
-// Dump the Log into it's file
+/** Dump the Log into it's file*/
 PREFIX void Log_Dump( State * state ) SUFFIX;
 
-// Get the number of Log entries
+/** Get the number of Log entries*/
 PREFIX int Log_Get_N_Entries( State * state ) SUFFIX;
 
-// Get the number of errors in the Log
+/** Get the number of errors in the Log*/
 PREFIX int Log_Get_N_Errors( State * state ) SUFFIX;
 
-// Get the number of warnings in the Log
+/** Get the number of warnings in the Log*/
 PREFIX int Log_Get_N_Warnings( State * state ) SUFFIX;
 
 /*
@@ -86,16 +87,16 @@ Set Log parameters
 --------------------------------------------------------------------
 */
 
-// The tag in front of the log file
+/** The tag in front of the log file*/
 PREFIX void Log_Set_Output_File_Tag( State * state, const char * tag ) SUFFIX;
 
-// The output folder for the log file
+/** The output folder for the log file*/
 PREFIX void Log_Set_Output_Folder( State * state, const char * folder ) SUFFIX;
 
-// Whether to write log messages to the console and corresponding level
+/** Whether to write log messages to the console and corresponding level*/
 PREFIX void Log_Set_Output_To_Console( State * state, bool output, int level ) SUFFIX;
 
-// Whether to write log messages to the log file and corresponding level
+/** Whether to write log messages to the log file and corresponding level*/
 PREFIX void Log_Set_Output_To_File( State * state, bool output, int level ) SUFFIX;
 
 /*
@@ -103,22 +104,22 @@ Get Log parameters
 --------------------------------------------------------------------
 */
 
-// Returns the tag in front of the log file
+/** Returns the tag in front of the log file*/
 PREFIX const char * Log_Get_Output_File_Tag( State * state ) SUFFIX;
 
-// Returns the output folder for the log file
+/** Returns the output folder for the log file*/
 PREFIX const char * Log_Get_Output_Folder( State * state ) SUFFIX;
 
-// Returns whether to write log messages to the console
+/** Returns whether to write log messages to the console*/
 PREFIX bool Log_Get_Output_To_Console( State * state ) SUFFIX;
 
-// Returns the console logging level
+/** Returns the console logging level*/
 PREFIX int Log_Get_Output_Console_Level( State * state ) SUFFIX;
 
-// Returns whether to write log messages to the log file
+/** Returns whether to write log messages to the log file*/
 PREFIX bool Log_Get_Output_To_File( State * state ) SUFFIX;
 
-// Returns the file logging level
+/** Returns the file logging level*/
 PREFIX int Log_Get_Output_File_Level( State * state ) SUFFIX;
 
 #include "DLL_Undefine_Export.h"

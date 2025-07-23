@@ -20,56 +20,56 @@ This method, if needed, calculates modes (they can also be read in from a file)
 and perturbs the spin system periodically in the direction of the eigenmode.
 */
 
-// Clears all the previously calculated modes from memory
+/// Clears all the previously calculated modes from memory
 PREFIX void Parameters_EMA_Clear_Modes( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
-Set
+Set Parameters
 --------------------------------------------------------------------
 */
 
-// Set the number of modes to calculate or use.
+/// Set the number of modes to calculate or use.
 PREFIX void Parameters_EMA_Set_N_Modes( State * state, int n_modes, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-// Set the index of the mode to use.
+/// Set the index of the mode to use.
 PREFIX void
 Parameters_EMA_Set_N_Mode_Follow( State * state, int n_mode_follow, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-// Set the frequency with which the mode is applied.
+/// Set the frequency with which the mode is applied.
 PREFIX void
 Parameters_EMA_Set_Frequency( State * state, scalar frequency, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-// Set the amplitude with which the mode is applied.
+/// Set the amplitude with which the mode is applied.
 PREFIX void
 Parameters_EMA_Set_Amplitude( State * state, scalar amplitude, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-// Set whether to displace the system statically instead of periodically.
+/// Set whether to displace the system statically instead of periodically.
 PREFIX void Parameters_EMA_Set_Snapshot( State * state, bool snapshot, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-// Set whether to use sparse matrices.
+/// Set whether to use sparse matrices.
 PREFIX void Parameters_EMA_Set_Sparse( State * state, bool sparse, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
-Get
+Get Parameters
 --------------------------------------------------------------------
 */
 
-// Returns the number of modes to calculate or use.
+/// Returns the number of modes to calculate or use.
 PREFIX int Parameters_EMA_Get_N_Modes( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-// Returns the index of the mode to use.
+/// Returns the index of the mode to use.
 PREFIX int Parameters_EMA_Get_N_Mode_Follow( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-// Returns the frequency with which the mode is applied.
+/// Returns the frequency with which the mode is applied.
 PREFIX scalar Parameters_EMA_Get_Frequency( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-// Returns the amplitude with which the mode is applied.
+/// Returns the amplitude with which the mode is applied.
 PREFIX scalar Parameters_EMA_Get_Amplitude( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-// Returns whether to displace the system statically instead of periodically.
+/// Returns whether to displace the system statically instead of periodically.
 PREFIX bool Parameters_EMA_Get_Snapshot( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-// Returns whether to use sparse matrices.
+/// Returns whether to use sparse matrices.
 PREFIX bool Parameters_EMA_Get_Sparse( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 #include "DLL_Undefine_Export.h"

@@ -27,6 +27,7 @@ Definition of Bravais lattice types
 --------------------------------------------------------------------
 */
 
+/// Identifier for the Bravais lattice type
 typedef enum
 {
     Bravais_Lattice_Irregular   = 0,
@@ -45,45 +46,46 @@ Setters
 --------------------------------------------------------------------
 */
 
-/*
-Set the type of Bravais lattice. Can be e.g. "sc" or "bcc".
-*/
+/**
+ *Set the type of Bravais lattice. Can be e.g. "sc" or "bcc".
+ */
 PREFIX void Geometry_Set_Bravais_Lattice_Type( State * state, Bravais_Lattice_Type lattice_type ) SUFFIX;
 
-/*
-Set the number of basis cells in the three translation directions.
-*/
+/**
+ *Set the number of basis cells in the three translation directions.
+ */
 PREFIX void Geometry_Set_N_Cells( State * state, int n_cells[3] ) SUFFIX;
 
-/*
-Set the number and positions of atoms in a basis cell.
-Positions are in units of the bravais vectors (scaled by the lattice constant).
-*/
+/**
+ *Set the number and positions of atoms in a basis cell.
+ *Positions are in units of the bravais vectors (scaled by the lattice constant).
+ */
 PREFIX void Geometry_Set_Cell_Atoms( State * state, int n_atoms, scalar ** atoms ) SUFFIX;
 
-/*
-Set the magnetic moments of basis cell atoms.
-*/
+/**
+ *Set the magnetic moments of basis cell atoms.
+ */
 PREFIX void Geometry_Set_mu_s( State * state, scalar mu_s, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-/*
-Set the spin quantum number of basis cell atoms. The value is to be specified as a half integer (i.e. spin_qn=5 means s=5/2)
-*/
+/**
+ *Set the spin quantum number of basis cell atoms. The value is to be specified as a half integer (i.e. spin_qn=5 means
+ *s=5/2)
+ */
 PREFIX void Geometry_Set_spin_qn( State * state, int spin_qn, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-/*
-Set the types of the atoms in a basis cell.
-*/
+/**
+ *Set the types of the atoms in a basis cell.
+ */
 PREFIX void Geometry_Set_Cell_Atom_Types( State * state, int n_atoms, int * atom_types ) SUFFIX;
 
-/*
-Manually set the bravais vectors.
-*/
+/**
+ *Manually set the bravais vectors.
+ */
 PREFIX void Geometry_Set_Bravais_Vectors( State * state, scalar ta[3], scalar tb[3], scalar tc[3] ) SUFFIX;
 
-/*
-Set the overall lattice scaling constant.
-*/
+/**
+ *Set the overall lattice scaling constant.
+ */
 PREFIX void Geometry_Set_Lattice_Constant( State * state, scalar lattice_constant ) SUFFIX;
 
 /*
@@ -92,61 +94,61 @@ Getters
 */
 
 /*
-**Returns:** the number of spins.
-*/
+ * @returns the number of spins.
+ */
 PREFIX int Geometry_Get_NOS( State * state ) SUFFIX;
 
 /*
-**Returns:** pointer to positions of spins (array of length 3*NOS).
-*/
+ * @returns pointer to positions of spins (array of length 3*NOS).
+ */
 PREFIX scalar * Geometry_Get_Positions( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
-**Returns:** pointer to atom types of lattice sites.
-*/
+ * @returns pointer to atom types of lattice sites.
+ */
 PREFIX int * Geometry_Get_Atom_Types( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-/*
-Get Bounds as array (x,y,z).
-*/
+/**
+ * Get Bounds as array (x,y,z).
+ */
 PREFIX void
 Geometry_Get_Bounds( State * state, scalar min[3], scalar max[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-/*
-Get Center as array (x,y,z).
-*/
+/**
+ *Get Center as array (x,y,z).
+ */
 PREFIX void Geometry_Get_Center( State * state, scalar center[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-/*
-Get bravais lattice type (see the `enum` defined above).
-*/
+/**
+ *Get bravais lattice type (see the `enum` defined above).
+ */
 PREFIX Bravais_Lattice_Type
 Geometry_Get_Bravais_Lattice_Type( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
-Get bravais vectors ta, tb, tc.
-*/
+ *Get bravais vectors ta, tb, tc.
+ */
 PREFIX void Geometry_Get_Bravais_Vectors(
     State * state, scalar a[3], scalar b[3], scalar c[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-/*
-Retrieve dimensionality of the system (0, 1, 2, 3).
-*/
+/**
+ *Retrieve dimensionality of the system (0, 1, 2, 3).
+ */
 PREFIX int Geometry_Get_Dimensionality( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-/*
-Get the magnetic moments of basis cell atoms.
-*/
+/**
+ *Get the magnetic moments of basis cell atoms.
+ */
 PREFIX void Geometry_Get_mu_s( State * state, scalar * mu_s, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-/*
-Get the spin quantum number of basis cell atoms. The values are to be read as half integers (i.e. spin_qn=5 means s=5/2)
-*/
+/**
+ *Get the spin quantum number of basis cell atoms. The values are to be read as half integers (i.e. spin_qn=5 means s=5/2)
+ */
 PREFIX void Geometry_Get_spin_qn( State * state, int * spin_qn, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-/*
-Get number of basis cells in the three translation directions.
-*/
+/**
+ *Get number of basis cells in the three translation directions.
+ */
 PREFIX void Geometry_Get_N_Cells( State * state, int n_cells[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
@@ -154,19 +156,19 @@ PREFIX void Geometry_Get_N_Cells( State * state, int n_cells[3], int idx_image =
 */
 
 /*
-Get Cell Bounds as array (x,y,z).
-*/
+ * Get Cell Bounds as array (x,y,z).
+ */
 PREFIX void
 Geometry_Get_Cell_Bounds( State * state, scalar min[3], scalar max[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
-Get number of atoms in a basis cell.
-*/
+ * Get number of atoms in a basis cell.
+ */
 PREFIX int Geometry_Get_N_Cell_Atoms( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
-Get basis cell atom positions in units of the bravais vectors (scaled by the lattice constant).
-*/
+ * Get basis cell atom positions in units of the bravais vectors (scaled by the lattice constant).
+ */
 PREFIX int Geometry_Get_Cell_Atoms( State * state, scalar ** atoms, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
@@ -174,11 +176,11 @@ PREFIX int Geometry_Get_Cell_Atoms( State * state, scalar ** atoms, int idx_imag
 */
 
 /*
-Get the 2D Delaunay triangulation. Returns the number of triangles and
-sets *indices_ptr to point to a list of index 3-tuples.
-
-**Returns:** the number of triangles in the triangulation
-*/
+ * Get the 2D Delaunay triangulation. Returns the number of triangles and
+ * sets *indices_ptr to point to a list of index 3-tuples.
+ *
+ * @returns the number of triangles in the triangulation
+ */
 PREFIX int Geometry_Get_Triangulation(
     State * state, const int ** indices_ptr, int n_cell_step = 1, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 PREFIX int Geometry_Get_Triangulation_Ranged(
@@ -186,11 +188,11 @@ PREFIX int Geometry_Get_Triangulation_Ranged(
     int idx_chain = -1 ) SUFFIX;
 
 /*
-Get the 3D Delaunay triangulation. Returns the number of tetrahedrons and
-sets *indices_ptr to point to a list of index 4-tuples.
-
-**Returns:** the number of tetrahedra
-*/
+ * Get the 3D Delaunay triangulation. Returns the number of tetrahedrons and
+ * sets *indices_ptr to point to a list of index 4-tuples.
+ *
+ * @returns the number of tetrahedra
+ */
 PREFIX int Geometry_Get_Tetrahedra(
     State * state, const int ** indices_ptr, int n_cell_step = 1, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 PREFIX int Geometry_Get_Tetrahedra_Ranged(

@@ -17,25 +17,25 @@ GNEB Parameters
 ```
 */
 
-// Regular GNEB image type.
+/// Regular GNEB image type.
 #define GNEB_IMAGE_NORMAL 0
 
-/*
-Climbing GNEB image type.
-Climbing images move towards maxima along the path.
-*/
+/**
+ * Climbing GNEB image type.
+ * Climbing images move towards maxima along the path.
+ */
 #define GNEB_IMAGE_CLIMBING 1
 
-/*
-Falling GNEB image type.
-Falling images move towards the closest minima.
-*/
+/**
+ * Falling GNEB image type.
+ * Falling images move towards the closest minima.
+ */
 #define GNEB_IMAGE_FALLING 2
 
-/*
-Stationary GNEB image type.
-Stationary images are not influenced during a GNEB calculation.
-*/
+/**
+ *Stationary GNEB image type.
+ *Stationary images are not influenced during a GNEB calculation.
+ */
 #define GNEB_IMAGE_STATIONARY 3
 
 /*
@@ -43,47 +43,47 @@ Set Output
 --------------------------------------------------------------------
 */
 
-/*
-Set the tag placed in front of output file names.
-
-If the tag is "<time>", it will be the date-time of the creation of the state.
-*/
+/**
+ *Set the tag placed in front of output file names.
+ *
+ *If the tag is "<time>", it will be the date-time of the creation of the state.
+ */
 PREFIX void Parameters_GNEB_Set_Output_Tag( State * state, const char * tag, int idx_chain = -1 ) SUFFIX;
 
-// Set the folder, where output files are placed.
+/// Set the folder, where output files are placed.
 PREFIX void Parameters_GNEB_Set_Output_Folder( State * state, const char * folder, int idx_chain = -1 ) SUFFIX;
 
-// Set whether to write any output files at all.
+/// Set whether to write any output files at all.
 PREFIX void
 Parameters_GNEB_Set_Output_General( State * state, bool any, bool initial, bool final, int idx_chain = -1 ) SUFFIX;
 
-/*
-Set whether to write energy output files.
-
-- `step`: whether to write a new file after each set of iterations
-- `interpolated`: whether to write a file containing interpolated reaction coordinate and energy values
-- `divide_by_nos`: whether to divide energies by the number of spins
-- `add_readability_lines`: whether to separate columns by lines
-*/
+/**
+ * Set whether to write energy output files.
+ *
+ * - `step`: whether to write a new file after each set of iterations
+ * - `interpolated`: whether to write a file containing interpolated reaction coordinate and energy values
+ * - `divide_by_nos`: whether to divide energies by the number of spins
+ * - `add_readability_lines`: whether to separate columns by lines
+ */
 PREFIX void Parameters_GNEB_Set_Output_Energies(
     State * state, bool step, bool interpolated, bool divide_by_nos, bool add_readability_lines,
     int idx_chain = -1 ) SUFFIX;
 
-/*
-Set whether to write chain output files.
-
-- `step`: whether to write a new file after each set of iterations
-- `filetype`: the format in which the data is written
-*/
+/**
+ * Set whether to write chain output files.
+ *
+ * - `step`: whether to write a new file after each set of iterations
+ * - `filetype`: the format in which the data is written
+ */
 PREFIX void Parameters_GNEB_Set_Output_Chain(
     State * state, bool step, int filetype = IO_Fileformat_OVF_text, int idx_chain = -1 ) SUFFIX;
 
-/*
-Set the number of iterations and how often to log and write output.
-
-- `n_iterations`: the maximum number of iterations
-- `n_iterations_log`: the number of iterations after which status is logged and output written
-*/
+/**
+ * Set the number of iterations and how often to log and write output.
+ *
+ * - `n_iterations`: the maximum number of iterations
+ * - `n_iterations_log`: the number of iterations after which status is logged and output written
+ */
 PREFIX void
 Parameters_GNEB_Set_N_Iterations( State * state, int n_iterations, int n_iterations_log, int idx_chain = -1 ) SUFFIX;
 
@@ -92,49 +92,49 @@ Set Parameters
 --------------------------------------------------------------------
 */
 
-/*
-Set the convergence limit.
-
-When the maximum absolute component value of the force drops below this value,
-the calculation is considered converged and will stop.
-*/
+/**
+ * Set the convergence limit.
+ *
+ * When the maximum absolute component value of the force drops below this value,
+ * the calculation is considered converged and will stop.
+ */
 PREFIX void
 Parameters_GNEB_Set_Convergence( State * state, scalar convergence, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-// Set the spring force constant.
+/// Set the spring force constant.
 PREFIX void Parameters_GNEB_Set_Spring_Constant(
     State * state, scalar spring_constant, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-// Set the ratio between energy and reaction coordinate.
+/// Set the ratio between energy and reaction coordinate.
 PREFIX void Parameters_GNEB_Set_Spring_Force_Ratio( State * state, scalar ratio, int idx_chain = -1 ) SUFFIX;
 
-// Set the path shortening constant.
+/// Set the path shortening constant.
 PREFIX void Parameters_GNEB_Set_Path_Shortening_Constant(
     State * state, scalar path_shortening_constant, int idx_chain = -1 ) SUFFIX;
 
-// Set if moving endpoints should be used
+/// Set if moving endpoints should be used
 PREFIX void Parameters_GNEB_Set_Moving_Endpoints( State * state, bool moving_endpoints, int idx_chain = -1 ) SUFFIX;
 
-// Set if attracting endpoints should be used
+/// Set if attracting endpoints should be used
 PREFIX void
 Parameters_GNEB_Set_Translating_Endpoints( State * state, bool translating_endpoints, int idx_chain = -1 ) SUFFIX;
 
-// Set equilibrium Rx, used for the  moving endpoints method
+/// Set equilibrium Rx, used for the  moving endpoints method
 PREFIX void Parameters_GNEB_Set_Equilibrium_Delta_Rx(
     State * state, scalar delta_Rx_left, scalar delta_Rx_right, int idx_chain = -1 ) SUFFIX;
 
-// Set the GNEB image type (see the integers defined above).
+/// Set the GNEB image type (see the integers defined above).
 PREFIX void
 Parameters_GNEB_Set_Climbing_Falling( State * state, int image_type, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-/*
-Automatically set GNEB image types.
-
-Minima along the path will be set to falling, maxima to climbing and the rest to regular.
-*/
+/**
+ * Automatically set GNEB image types.
+ *
+ * Minima along the path will be set to falling, maxima to climbing and the rest to regular.
+ */
 PREFIX void Parameters_GNEB_Set_Image_Type_Automatically( State * state, int idx_chain = -1 ) SUFFIX;
 
-// Returns the maximum number of iterations and the step size.
+/// Returns the maximum number of iterations and the step size.
 PREFIX void Parameters_GNEB_Set_N_Energy_Interpolations( State * state, int n, int idx_chain = -1 ) SUFFIX;
 
 /*
@@ -142,25 +142,25 @@ Get Output
 --------------------------------------------------------------------
 */
 
-// Returns the output file tag.
+/// Returns the output file tag.
 PREFIX const char * Parameters_GNEB_Get_Output_Tag( State * state, int idx_chain = -1 ) SUFFIX;
 
-// Returns the output folder.
+/// Returns the output folder.
 PREFIX const char * Parameters_GNEB_Get_Output_Folder( State * state, int idx_chain = -1 ) SUFFIX;
 
-// Retrieves whether to write any output at all.
+/// Retrieves whether to write any output at all.
 PREFIX void Parameters_GNEB_Get_Output_General(
     State * state, bool * any, bool * initial, bool * final, int idx_chain = -1 ) SUFFIX;
 
-// Retrieves the energy output settings.
+/// Retrieves the energy output settings.
 PREFIX void Parameters_GNEB_Get_Output_Energies(
     State * state, bool * step, bool * interpolated, bool * divide_by_nos, bool * add_readability_lines,
     int idx_chain = -1 ) SUFFIX;
 
-// Retrieves the chain output settings.
+/// Retrieves the chain output settings.
 PREFIX void Parameters_GNEB_Get_Output_Chain( State * state, bool * step, int * filetype, int idx_chain = -1 ) SUFFIX;
 
-// Returns the maximum number of iterations and the step size.
+/// Returns the maximum number of iterations and the step size.
 PREFIX void
 Parameters_GNEB_Get_N_Iterations( State * state, int * iterations, int * iterations_log, int idx_chain = -1 ) SUFFIX;
 
@@ -169,36 +169,36 @@ Get Parameters
 --------------------------------------------------------------------
 */
 
-// Simulation Parameters
+/// Simulation Parameters
 PREFIX scalar Parameters_GNEB_Get_Convergence( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-// Returns the spring force constant.
+/// Returns the spring force constant.
 PREFIX scalar Parameters_GNEB_Get_Spring_Constant( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-// Returns the spring force cratio of energy to reaction coordinate.
+/// Returns the spring force cratio of energy to reaction coordinate.
 PREFIX scalar Parameters_GNEB_Get_Spring_Force_Ratio( State * state, int idx_chain = -1 ) SUFFIX;
 
-// Return the path shortening constant.
+/// Return the path shortening constant.
 PREFIX scalar Parameters_GNEB_Get_Path_Shortening_Constant( State * state, int idx_chain = -1 ) SUFFIX;
 
-// Return if moving endpoints are used
+/// Return if moving endpoints are used
 PREFIX bool Parameters_GNEB_Get_Moving_Endpoints( State * state, int idx_chain = -1 ) SUFFIX;
 
-// Set if translating endpoints are used
+/// Set if translating endpoints are used
 PREFIX bool Parameters_GNEB_Get_Translating_Endpoints( State * state, int idx_chain = -1 ) SUFFIX;
 
-// Get the equilibrium Rx, used for the moving endpoints method
+/// Get the equilibrium Rx, used for the moving endpoints method
 PREFIX void Parameters_GNEB_Get_Equilibrium_Delta_Rx(
     State * state, scalar * delta_Rx_left, scalar * delta_Rx_right, int idx_chain = -1 ) SUFFIX;
 
-/*
-Returns the integer of whether an image is regular, climbing, falling, or stationary.
-
-The integers are defined above.
-*/
+/**
+ *Returns the integer of whether an image is regular, climbing, falling, or stationary.
+ *
+ *The integers are defined above.
+ */
 PREFIX int Parameters_GNEB_Get_Climbing_Falling( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-// Returns the number of energy values interpolated between images.
+/// Returns the number of energy values interpolated between images.
 PREFIX int Parameters_GNEB_Get_N_Energy_Interpolations( State * state, int idx_chain = -1 ) SUFFIX;
 
 #include "DLL_Undefine_Export.h"

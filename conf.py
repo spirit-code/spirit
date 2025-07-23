@@ -47,6 +47,7 @@ sys.path.insert( 0, os.path.join( os.path.dirname( __file__ ), "core", "python" 
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'breathe',
     'sphinx_markdown_tables',
     'myst_parser',
     'sphinx.ext.intersphinx',
@@ -235,10 +236,15 @@ apidoc_modules = [
     }
 ]
 
-def cmake_configure(_):
-    """generate required metadata with cmake"""
+def pre_build_hook(_):
+    """
+    Run pre-build hooks:
+    - generate required metadata with cmake
+    - run doxygen
+    """
 
     import subprocess
+    # cmake
     subprocess.check_call([
             'cmake',
             '-B build',
@@ -250,5 +256,16 @@ def cmake_configure(_):
         cwd=source_dir,
     )
 
+    # doxygen
+    subprocess.call('doxygen', cwd=source_dir)
+
+breathe_projects = {
+    "Spirit": os.path.join(source_dir, "core", "docs", "c-api", "xml")
+}
+
+breathe_default_project = "Spirit"
+breathe_show_define_initializer = True
+breathe_show_enumvalue_initializer = True
+
 def setup(app):
-    app.connect('builder-inited', cmake_configure)
+    app.connect('builder-inited', pre_build_hook)
