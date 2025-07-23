@@ -519,6 +519,17 @@ def get_biaxial_anisotropy_n_terms(p_state, idx_image=-1, idx_chain=-1):
 
 
 class BiaxialAnisotropyData(NamedTuple):
+    """
+    Data describing the Biaxial Anisotropy interaction
+
+    :param indices: indices
+    :param primary: primary anisotropy axis
+    :param secondary: secondary anisotropy axis
+    :param site_p: offset array for site data in magnitude and exponents
+    :param magnitude: magnitude of the contribution
+    :param exponents: exponents of the contribution
+    """
+
     indices: np.ndarray
     primary: np.ndarray
     secondary: np.ndarray
