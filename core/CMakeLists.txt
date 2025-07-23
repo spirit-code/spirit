@@ -232,14 +232,44 @@ endif()
 
 ######### TBB decisions ############################################
 if( SPIRIT_USE_STDPAR )
-    include( FindTBB )
-    if( TBB_FOUND )
-        set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_STDPAR )
-        message( STATUS ">> using TBB for parallel STL" )
+    include(CheckCXXSourceCompiles)
+    set( SOURCE_CXX17_PARALLEL_ALGORITHM "
+      #include <execution>
+      int main()
+      {
+        std::execution::seq;
+        std::execution::par;
+        std::execution::par_unseq;
+        return 0;
+      }
+    " )
+    check_cxx_source_compiles( "${SOURCE_CXX17_PARALLEL_ALGORITHM}"
+                               HAVE_BUILTIN_CXX17_PARALLEL_ALGORITHM )
+
+    if( NOT HAVE_BUILTIN_CXX17_PARALLEL_ALGORITHM )
+        # Try to find TBB module
+        find_package( TBB )
+        if( TBB_FOUND )
+            set( TBB_LIB TBB::tbb )
+            message( STATUS ">> using TBB for parallel STL" )
+        else()
+            set( TBB_LIB )
+            message( WARNING ">> TBB could not be found." )
+        endif()
+        # All of these symbols are required to use this feature.
+        # So, if this compiles even if TBB was not found it should be fine.
+        list( APPEND CMAKE_REQUIRED_LIBRARIES ${TBB_LIB} )
+        check_cxx_source_compiles( "${SOURCE_CXX17_PARALLEL_ALGORITHM}"
+                                   HAVE_TBB_CXX17_PARALLEL_ALGORITHM )
+        set( HAVE_CXX17_PARALLEL_ALGORITHM ${HAVE_TBB_CXX17_PARALLEL_ALGORITHM} )
     else()
-        message( WARNING ">> TBB could not be found." )
-        set( SPIRIT_USE_STDPAR OFF )
+        set( HAVE_CXX17_PARALLEL_ALGORITHM ${HAVE_BUILTIN_CXX17_PARALLEL_ALGORITHM} )
     endif()
+
+    if( NOT HAVE_CXX17_PARALLEL_ALGORITHM )
+        message( FATAL_ERROR "C++17 execution policies are required for SPIRIT_USE_STDPAR=ON" )
+    endif()
+    set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_STDPAR )
 endif()
 ######### TBB decisions ############################################
 

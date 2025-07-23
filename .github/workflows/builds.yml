@@ -14,6 +14,8 @@ jobs:
           - os: ubuntu-22.04
           - os: ubuntu-22.04
             parallelisation: 'openmp'
+          - os: ubuntu-22.04
+            parallelisation: 'stdpar'
     env:
       BUILD_TYPE: Release
       CMAKE_FLAGS: >
@@ -59,6 +61,17 @@ jobs:
           -DSPIRIT_USE_OPENMP=ON
           $CMAKE_FLAGS
 
+      - name: Configure with STL parallelisation
+        if: matrix.parallelisation == 'stdpar'
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: >
+          cmake $GITHUB_WORKSPACE
+          $BUILD_SYSTEM_FLAG
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+          $CMAKE_FLAGS
+          -DSPIRIT_USE_STDPAR=ON
+
       - name: Build
         shell: bash
         working-directory: ${{runner.workspace}}/build
@@ -80,6 +93,8 @@ jobs:
             parallelisation: ''
           - os: ubuntu-24.04
             parallelisation: 'openmp'
+          - os: ubuntu-24.04
+            parallelisation: 'stdpar'
           # this build cannot be configured currently
           # - os: ubuntu-24.04
           #   parallelisation: "cuda"
@@ -189,6 +204,17 @@ jobs:
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE
           $CMAKE_FLAGS
           -DSPIRIT_USE_OPENMP=ON
+
+      - name: Configure with STL parallelisation
+        if: matrix.parallelisation == 'stdpar'
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: >
+          cmake $GITHUB_WORKSPACE
+          $BUILD_SYSTEM_FLAG
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+          $CMAKE_FLAGS
+          -DSPIRIT_USE_STDPAR=ON
 
       - name: Build
         shell: bash
