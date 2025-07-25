@@ -1,0 +1,73 @@
+#pragma once
+#ifndef SPIRIT_CORE_ENGINE_SPIN_INTERACTION_{{ name | upper }}_HPP
+#define SPIRIT_CORE_ENGINE_SPIN_INTERACTION_{{ name | upper }}_HPP
+
+#include <engine/Index_Container.hpp>
+#include <engine/spin/StateType.hpp>
+#include <engine/spin/interaction/Functor_Prototypes.hpp>
+
+namespace Engine
+{
+
+namespace Spin
+{
+
+namespace Interaction
+{
+
+struct {{ name }}
+{
+    using state_t = StateType;
+
+    struct Data
+    {
+        Data() = default;
+    };
+
+    struct Cache
+    {
+    };
+
+    using IndexContainer = Engine::IndexContainer<{{ name }}>;
+
+    static bool is_contributing( const Data & data, const Cache & )
+    {
+        return true;
+    };
+
+    static void applyGeometry(
+        const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache );
+
+    using Energy             = Functor::NonLocal::Energy_Functor<Functor::NonLocal::DataRef<{{ name }}>>;
+    using Gradient           = Functor::NonLocal::Gradient_Functor<Functor::NonLocal::DataRef<{{ name }}>>;
+    using Gradient_Local     = Functor::NonLocal::Gradient_Local_Functor<Functor::NonLocal::DataRef<{{ name }}>>;
+    using Hessian            = Functor::NonLocal::Hessian_Functor<Functor::NonLocal::DataRef<{{ name }}>>;
+    using Energy_Single_Spin = Functor::NonLocal::Energy_Single_Spin_Functor<Functor::NonLocal::DataRef<{{ name }}>>;
+    using Energy_Total       = Functor::NonLocal::Reduce_Functor<Energy>;
+
+    static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & )
+    {
+        return 0;
+    };
+
+    // Interaction name as string
+    static constexpr std::string_view name = R"({{ full_name }})";
+
+    // This marks the interaction as nonlocal
+    static constexpr bool local = false;
+};
+
+template<>
+template<typename Callable>
+void {{ name }}::Hessian::operator()( const StateType & state, Callable & hessian ) const
+{
+    // TODO: Add your Hessian implementation. Energy and Gradient are defined in a .cpp file.
+};
+
+} // namespace Interaction
+
+} // namespace Spin
+
+} // namespace Engine
+#endif
+

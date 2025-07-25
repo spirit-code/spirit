@@ -1,0 +1,150 @@
+#pragma once
+#ifndef SPIRIT_CORE_ENGINE_SPIN_INTERACTION_{{ name | upper }}_HPP
+#define SPIRIT_CORE_ENGINE_SPIN_INTERACTION_{{ name | upper }}_HPP
+
+#include <engine/Index_Container.hpp>
+#include <engine/Indexing.hpp>
+#include <engine/Neighbours.hpp>
+#include <engine/Span.hpp>
+#include <engine/spin/StateType.hpp>
+#include <engine/spin/interaction/Functor_Prototypes.hpp>
+
+#include <Eigen/Dense>
+
+namespace Engine
+{
+
+namespace Spin
+{
+
+namespace Interaction
+{
+
+struct {{ name }}
+{
+    using state_t = StateType;
+
+    struct Data
+    {
+        Data() = default; // This constructor is required. Don't delete it!
+        // TODO: Add whatever data your interaction needs to be configured
+    };
+
+    static bool valid_data( const Data & data )
+    {
+        // NOTE: This is an optional method to validate your data whenever it gets set
+        return true;
+    };
+
+    struct Cache
+    {
+        // NOTE: The cache is populated with data that is dependent on the Geometry
+    };
+
+    static bool is_contributing( const Data &, const Cache & cache )
+    {
+        // NOTE: if the current configuration doesn't affect the Hamiltonian it will be skipped
+        return true;
+    }
+
+    struct Index
+    {
+        // TODO: The index data each site needs to calculate the local contribution.
+        // It is passed as a span to the Energy, Gradient and Hessian methods defined below.
+    };
+
+    using IndexContainer = Engine::IndexContainer<{{ name }}>;
+
+    // These are the default implementations that hook into
+    using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<{{ name }}>>;
+    using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<{{ name }}>>;
+    using Hessian  = Functor::Local::Hessian_Functor<Functor::Local::DataRef<{{ name }}>>;
+
+    static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & cache )
+    {
+        // TODO: How many terms contribute to the Hessian for each cell?
+        return 0;
+    };
+
+    // Calculate the total energy for a single spin to be used in Monte Carlo.
+    //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
+    using Energy_Single_Spin = Functor::Local::Energy_Single_Spin_Functor<Energy, 1>;
+
+    // Interaction name as string
+    static constexpr std::string_view name = R"({{ full_name }})";
+
+    static void applyGeometry(
+        const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache,
+        IndexContainer & container )
+    {
+        using Indexing::idx_from_pair;
+        auto indices = std::vector( geometry.nos, field<Index>{} );
+
+        // TODO: Define the indices that contribute to each local Hamiltonian.
+
+        container = make_index_container<{{ name }}>( std::move( indices ) );
+    };
+};
+
+template<>
+struct Functor::Local::DataRef<{{ name }}>
+{
+    using Interaction = {{ name }};
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+
+    // The constructor signature is required. You have to initialize all members you define below.
+    DataRef( const Data & data, const Cache & cache ) noexcept
+            : is_contributing( Interaction::is_contributing( data, cache ) )
+    {
+    }
+
+    const bool is_contributing;
+
+protected:
+    // TODO: This is the data the functions calculating Energy, Gradient and Hessian have access to.
+    // They should all be trivial values or pointers to const data in a container of type field<T>.
+    const scalar * magnitudes;
+};
+
+template<>
+inline scalar {{ name }}::Energy::operator()( Span<const Index> index, quantity<const Vector3 *> state ) const
+{
+    return Backend::transform_reduce(
+        index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
+        [this, state] SPIRIT_LAMBDA( const Index & idx ) -> scalar
+        {
+            // TODO: Add your Energy implementation
+        } );
+}
+
+template<>
+inline Vector3 {{ name }}::Gradient::operator()( Span<const Index> index, quantity<const Vector3 *> state ) const
+{
+    return Backend::transform_reduce(
+        index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
+        [this, state] SPIRIT_LAMBDA( const Index & idx ) -> Vector3
+        {
+            // TODO: Add your Gradient implementation
+        } );
+}
+
+template<>
+template<typename Callable>
+void {{ name }}::Hessian::operator()( Span<const Index> index, const StateType &, Callable & hessian ) const
+{
+    Backend::cpu::for_each(
+        index.begin(), index.end(),
+        [this, &hessian]( const Index & idx )
+        {
+            // TODO: Add your Hessian implementation
+        } );
+}
+
+} // namespace Interaction
+
+} // namespace Spin
+
+} // namespace Engine
+
+#endif

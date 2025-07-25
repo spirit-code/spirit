@@ -1,0 +1,73 @@
+#include <engine/Vectormath_Defines.hpp>
+#include <io/Dataparser.hpp>
+#include <io/Filter_File_Handle.hpp>
+#include <io/Tableparser.hpp>
+
+#include <vector>
+
+using Utility::Log_Level, Utility::Log_Sender;
+
+{% if make_tableparser %}
+namespace
+{
+
+// Read from table file or string
+auto {{ name }}_from_File( Filter_File_Handle & table_file, const Data::Geometry & )
+    -> Engine::Spin::Interaction::{{ name }}::Data
+{
+    Log( Log_Level::Debug, Log_Sender::IO,
+         fmt::format( "Reading \"{{ name }}\" table from \"{}\"", table_file.filename() ) );
+
+    // parser initialization, choose wichever method suits your needs
+    using CustomTableParser = TableParser</* manual sequence of data types */>>;
+    // using CustomTableParser = TableParserInit</* data types using a sequence of std::array<T, N> */>>;
+    const CustomTableParser parser( { /* labels which are assumed to be lowercase */ } );
+
+    const auto data = parser.parse( table_file, "n_{{ name | lower }}", /*max_columns=*/ 1 );
+
+    auto result = Engine::Spin::Interaction::{{ name }}::Data{};
+
+    return result;
+}
+
+} // namespace
+
+{% endif %}
+namespace IO
+{
+
+{{ input_function_signature }}
+{
+{% if make_tableparser %}
+    Log( Log_Level::Debug, Log_Sender::IO,
+         fmt::format( "Reading \"{{ name }}\" table from \"{}\"", table_file.filename() ) );
+
+    // parser initialization, choose wichever method suits your needs
+    using CustomTableParser = TableParser</* manual sequence of data types */>>;
+    // using CustomTableParser = TableParserInit</* data types using a sequence of std::array<T, N> */>>;
+    const CustomTableParser parser( { /* labels which are assumed to be lowercase */ } );
+
+    const auto data = parser.parse( table_file, "n_{{ name | lower }}", /*max_columns=*/ 1 );
+
+    auto result = Engine::Spin::Interaction::{{ name }}::Data{};
+
+    return result;
+{% else %}
+    // TODO: Implement how to read custom values from the "hamiltonian" input section to
+    // make the Data object associated with your interaction.
+    return {};
+{% endif %}
+}
+
+{{ output_function_signature }}
+{
+    if( !data )
+        return toml::table{};
+
+    // TODO: extract data from the Data object and write them to the config section.
+    // If a table with multiple entries is returned it gets merged into the "hamiltonian" table.
+
+    return toml::table{};
+}
+
+} // namespace IO

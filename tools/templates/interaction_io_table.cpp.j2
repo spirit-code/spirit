@@ -1,0 +1,63 @@
+#include <engine/Vectormath_Defines.hpp>
+#include <io/Dataparser.hpp>
+#include <io/Filter_File_Handle.hpp>
+#include <io/Tableparser.hpp>
+
+#include <vector>
+
+using Utility::Log_Level, Utility::Log_Sender;
+
+namespace IO
+{
+
+namespace
+{
+
+// Read from table file or string
+auto {{ name }}_from_File( Filter_File_Handle & table_file, const Data::Geometry & )
+    -> Engine::Spin::Interaction::{{ name }}::Data
+{
+    Log( Log_Level::Debug, Log_Sender::IO,
+         fmt::format( "Reading \"{{ name }}\" table from \"{}\"", table_file.filename() ) );
+
+    // parser initialization, choose wichever method suits your needs
+    using CustomTableParser = TableParser</* manual sequence of data types */>>;
+    // using CustomTableParser = TableParserInit</* data types using a sequence of std::array<T, N> */>>;
+    const CustomTableParser parser( { /* labels which are assumed to be lowercase */ } );
+
+    const auto data = parser.parse( table_file, "n_{{ name | lower }}", /*max_columns=*/ 1 );
+
+    auto result = Engine::Spin::Interaction::{{ name }}::Data{};
+
+    return result;
+}
+
+} // namespace
+
+{{ input_function_signature }}
+{
+    auto {{ name | lower }} = tbl["{{ name | lower }}"].as_string();
+    if( !{{ name | lower }} )
+        return {};
+
+    auto table_handle = Filter_File_Handle::from_string( {{ name | lower }}->get() );
+    const auto result = {{ name }}_from_File( table_handle, geometry );
+
+    // TODO: provide some output which input was parsed.
+    // parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_{{ name | lower }}", result.{{ name | lower }}.size() ) );
+
+    return result;
+}
+
+{{ output_function_signature }}
+{
+    if( !data )
+        return toml::table{};
+
+    // TODO: extract data from the Data object and write them to the config section.
+    // If a table with multiple entries is returned it gets merged into the "hamiltonian" table.
+
+    return toml::table{};
+}
+
+} // namespace IO

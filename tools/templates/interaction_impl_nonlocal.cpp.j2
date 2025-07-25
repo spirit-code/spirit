@@ -1,0 +1,72 @@
+#include <engine/Backend.hpp>
+#include <engine/Indexing.hpp>
+#include <engine/Neighbours.hpp>
+#include <engine/Vectormath.hpp>
+#include <engine/spin/interaction/{{ name }}.hpp>
+#include <utility/Constants.hpp>
+
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
+namespace Engine
+{
+
+namespace Spin
+{
+
+namespace Interaction
+{
+
+void {{ name }}::applyGeometry(
+    const Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache )
+{
+    // TODO: Here you can precaclulate some values that depend on the Geometry and store them in the cache
+}
+
+template<>
+void {{ name }}::Energy::operator()( const StateType & state, scalarfield & energy ) const
+{
+    // TODO: Implement how to calculate the local energy for the {{ name }} interaction
+    // The function object has access to references of the data and cache values.
+    // Always add to the value present at each position.
+};
+
+template<>
+void {{ name }}::Gradient::operator()( const StateType & state, vectorfield & gradient ) const
+{
+    // TODO: Implement how to calculate the local gradients for the {{ name }} interaction
+    // The function object has access to references of the data and cache values.
+    // Always add to the value present at each position.
+};
+
+template<>
+Vector3 {{ name }}::Gradient_Local::operator()( const int ispin, const StateType & state ) const
+{
+    // TODO: implement this if you want to use the MC module with this interaction.
+    // It should be able to calculate the local gradient more efficiently than the implementation below.
+    // The function object has access to references of the data and cache values.
+
+    vectorfield energy( state.spin.size(), Vector3::Zero() );
+    std::invoke( {{ name }}::Gradient( data, cache ), state, gradient );
+    return gradient[ispin];
+};
+
+// Calculate the total energy for a single spin to be used in Monte Carlo.
+//      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
+template<>
+scalar {{ name }}::Energy_Single_Spin::operator()( const int ispin, const StateType & state ) const
+{
+    // TODO: implement this if you want to use the MC module with this interaction.
+    // It should be able to calculate the local gradient more efficiently than the implementation below.
+    // The function object has access to references of the data and cache values.
+
+    scalarfield energy( state.spin.size(), 0.0 );
+    std::invoke( {{ name }}::Energy( data, cache ), state, energy );
+    return energy[ispin];
+};
+
+} // namespace Interaction
+
+} // namespace Spin
+
+} // namespace Engine
