@@ -466,6 +466,7 @@ if( SPIRIT_USE_CUDA )
     set_source_files_properties(
         ${CMAKE_CURRENT_LIST_DIR}/test/test_api.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_io.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/test/test_pairs.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_physics.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_solvers.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_vectormath.cpp
@@ -576,6 +577,7 @@ if( SPIRIT_BUILD_FOR_CXX OR SPIRIT_BUILD_FOR_JS )
         add_framework_test( test_configparser       test/test_configparser.cpp )
         add_framework_test( test_vmath              test/test_vectormath.cpp )
         add_framework_test( test_mmath              test/test_manifoldmath.cpp )
+        add_framework_test( test_pairs              test/test_pairs.cpp )
         add_framework_test( test_api                test/test_api.cpp )
         add_framework_test( test_physics            test/test_physics.cpp )
         add_framework_test( test_ema                test/test_ema.cpp)

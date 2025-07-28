@@ -93,6 +93,15 @@ Geometry::Geometry(
     this->cache.last_update_n_cells     = intfield( 3, -1 );
 }
 
+Matrix3 Geometry::bravaisMatrix() const noexcept
+{
+    Matrix3 mat;
+    mat.col( 0 ) = this->bravais_vectors[0];
+    mat.col( 1 ) = this->bravais_vectors[1];
+    mat.col( 2 ) = this->bravais_vectors[2];
+    return mat;
+}
+
 void Geometry::generatePositions()
 {
     const scalar epsilon = 1e-6;

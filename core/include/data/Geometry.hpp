@@ -133,6 +133,8 @@ public:
     static std::vector<Vector3> BravaisVectorsHex2D120();
     // Pinning
     void Apply_Pinning( vectorfield & vf ) const;
+    // generate bravais matrix
+    [[nodiscard]] Matrix3 bravaisMatrix() const noexcept;
 
     // ---------- Basic information set, which (in theory) defines everything
     // Basis vectors {a, b, c} of the unit cell

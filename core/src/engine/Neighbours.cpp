@@ -18,56 +18,47 @@ std::vector<scalar> Get_Shell_Radii( const Data::Geometry & geometry, const std:
 
     auto shell_radii = std::vector<scalar>( n_shells );
 
-    Vector3 ta = geometry.lattice_constant * geometry.bravais_vectors[0];
-    Vector3 tb = geometry.lattice_constant * geometry.bravais_vectors[1];
-    Vector3 tc = geometry.lattice_constant * geometry.bravais_vectors[2];
+    const Vector3 ta = geometry.lattice_constant * geometry.bravais_vectors[0];
+    const Vector3 tb = geometry.lattice_constant * geometry.bravais_vectors[1];
+    const Vector3 tc = geometry.lattice_constant * geometry.bravais_vectors[2];
+
+    const Matrix3 bravais_matrix = geometry.lattice_constant * geometry.bravaisMatrix();
 
     // The n_shells + 2 is a value that is big enough by experience to produce enough needed shells, but is small enough
     // to run sufficiently fast
     int max_n_translations = n_shells + 2;
 
-    int i_max = std::min( max_n_translations, geometry.n_cells[0] - 1 );
-    int j_max = std::min( max_n_translations, geometry.n_cells[1] - 1 );
-    int k_max = std::min( max_n_translations, geometry.n_cells[2] - 1 );
+    // Abort conditions for all 3 vectors
+    const int i_max = ta.norm() == 0 ? 0 : std::min( max_n_translations, geometry.n_cells[0] - 1 );
+    const int j_max = tb.norm() == 0 ? 0 : std::min( max_n_translations, geometry.n_cells[1] - 1 );
+    const int k_max = tc.norm() == 0 ? 0 : std::min( max_n_translations, geometry.n_cells[2] - 1 );
 
-    // Abort condidions for all 3 vectors
-    if( ta.norm() == 0.0 )
-        i_max = 0;
-    if( tb.norm() == 0.0 )
-        j_max = 0;
-    if( tc.norm() == 0.0 )
-        k_max = 0;
-
-    int atom_one{ 0 }, atom_two{ 0 };
-    int i{ 0 }, j{ 0 }, k{ 0 };
-    scalar outermost_radius = 0, pos_delta = 0, previous_radius = 0;
-    Vector3 pos_one = { 0, 0, 0 }, pos_two = { 0, 0, 0 };
+    scalar previous_radius = 0, outermost_radius = 0;
     for( auto & shell_radius : shell_radii )
     {
-        previous_radius = outermost_radius;
-        // Starting from the maximum representable value, determine the smallest shell that is more than min_shell_width
-        // wider than the previous
+        // scanning for the smallest possible radus in the interval: (previous_radius, outermost_radius)
+        // this achieves finding the next-smallest occuring radius
+        previous_radius  = outermost_radius;
         outermost_radius = std::numeric_limits<scalar>::max();
-        for( atom_one = 0; atom_one < geometry.n_cell_atoms; ++atom_one )
+        for( int atom_one = 0; atom_one < geometry.n_cell_atoms; ++atom_one )
         {
-            pos_one = geometry.cell_atoms[atom_one];
-            // Note: due to symmetry we only need to check half the space
-            for( i = i_max; i >= 0; --i )
+            for( int atom_two = 0; atom_two < geometry.n_cell_atoms; ++atom_two )
             {
-                for( j = j_max; j >= -j_max; --j )
+                const auto delta_basis
+                    = bravais_matrix * ( geometry.cell_atoms[atom_two] - geometry.cell_atoms[atom_one] );
+                // Note: due to symmetry we only need to check half the space
+                for( int i = i_max; i >= 0; --i )
                 {
-                    for( k = k_max; k >= -k_max; --k )
+                    for( int j = j_max; j >= -j_max; --j )
                     {
-                        for( atom_two = 0; atom_two < geometry.n_cell_atoms; ++atom_two )
+                        for( int k = k_max; k >= -k_max; --k )
                         {
                             if( !( atom_one == atom_two && i == 0 && j == 0 && k == 0 ) )
                             {
-                                pos_two   = geometry.cell_atoms[atom_two] + i * ta + j * tb + k * tc;
-                                pos_delta = ( pos_one - pos_two ).norm();
-                                if( pos_delta - previous_radius > min_shell_width && pos_delta < outermost_radius )
+                                const scalar pos_delta = ( delta_basis + i * ta + j * tb + k * tc ).norm();
+                                if( pos_delta < outermost_radius && pos_delta - previous_radius > min_shell_width )
                                 {
                                     outermost_radius = pos_delta;
-                                    shell_radius     = pos_delta;
                                 }
                             }
                         }
@@ -75,6 +66,7 @@ std::vector<scalar> Get_Shell_Radii( const Data::Geometry & geometry, const std:
                 }
             }
         }
+        shell_radius = outermost_radius;
     }
 
     return shell_radii;
@@ -88,59 +80,43 @@ void Get_Neighbours_in_Shells(
 
     auto shell_radii = Get_Shell_Radii( geometry, n_shells );
 
-    Vector3 ta = geometry.lattice_constant * geometry.bravais_vectors[0];
-    Vector3 tb = geometry.lattice_constant * geometry.bravais_vectors[1];
-    Vector3 tc = geometry.lattice_constant * geometry.bravais_vectors[2];
+    const Vector3 ta = geometry.lattice_constant * geometry.bravais_vectors[0];
+    const Vector3 tb = geometry.lattice_constant * geometry.bravais_vectors[1];
+    const Vector3 tc = geometry.lattice_constant * geometry.bravais_vectors[2];
+
+    const Matrix3 bravais_matrix = geometry.lattice_constant * geometry.bravaisMatrix();
 
     // The n_shells + 2 is a value that is big enough by experience to produce enough needed shells, but is small enough
     // to run sufficiently fast
-    int max_n_translations = n_shells + 2;
-
-    int i_max = std::min( max_n_translations, geometry.n_cells[0] - 1 );
-    int j_max = std::min( max_n_translations, geometry.n_cells[1] - 1 );
-    int k_max = std::min( max_n_translations, geometry.n_cells[2] - 1 );
-
-    // If redundant neighbours should not be used, we restrict the search to half of the space
-    int i_min = -i_max;
-    int j_min = -j_max;
-    int k_min = -k_max;
+    const int max_n_translations = n_shells + 2;
 
     // Abort condidions for all 3 vectors
-    if( ta.norm() == 0.0 )
-        i_max = 0;
-    if( tb.norm() == 0.0 )
-        j_max = 0;
-    if( tc.norm() == 0.0 )
-        k_max = 0;
+    const int i_max = ta.norm() == 0 ? 0 : std::min( max_n_translations, geometry.n_cells[0] - 1 );
+    const int j_max = tb.norm() == 0 ? 0 : std::min( max_n_translations, geometry.n_cells[1] - 1 );
+    const int k_max = tc.norm() == 0 ? 0 : std::min( max_n_translations, geometry.n_cells[2] - 1 );
 
-    int second_atom_min = 0;
-    int atom_one{ 0 }, atom_two{ 0 }, i{ 0 }, j{ 0 }, k{ 0 };
-    std::size_t ishell = 0;
-    scalar pos_delta = 0, radius = 0;
-    Vector3 pos_one = { 0, 0, 0 }, pos_two = { 0, 0, 0 };
-    for( atom_one = 0; atom_one < geometry.n_cell_atoms; ++atom_one )
+    for( int atom_one = 0; atom_one < geometry.n_cell_atoms; ++atom_one )
     {
+        int atom_two = 0;
         if( !use_redundant_neighbours )
-            second_atom_min = atom_one;
-
-        pos_one = geometry.cell_atoms[atom_one];
-        for( ishell = 0; ishell < n_shells; ++ishell )
+            atom_two = atom_one;
+        for( ; atom_two < geometry.n_cell_atoms; ++atom_two )
         {
-            radius = shell_radii[ishell];
-            for( i = i_max; i >= i_min; --i )
+            const auto delta_basis = bravais_matrix * ( geometry.cell_atoms[atom_two] - geometry.cell_atoms[atom_one] );
+            for( int ishell = 0; ishell < n_shells; ++ishell )
             {
-                for( j = j_max; j >= j_min; --j )
+                const auto radius = shell_radii[ishell];
+                for( int i = i_max; i >= -i_max; --i )
                 {
-                    for( k = k_max; k >= k_min; --k )
+                    for( int j = j_max; j >= -j_max; --j )
                     {
-                        for( atom_two = second_atom_min; atom_two < geometry.n_cell_atoms; ++atom_two )
+                        for( int k = k_max; k >= -k_max; --k )
                         {
                             if( ( atom_two > atom_one )
                                 || ( i > 0 || ( i == 0 && j > 0 ) || ( i == 0 && j == 0 && k > 0 ) )
                                 || use_redundant_neighbours )
                             {
-                                pos_two   = geometry.cell_atoms[atom_two] + i * ta + j * tb + k * tc;
-                                pos_delta = ( pos_one - pos_two ).norm();
+                                const scalar pos_delta = ( delta_basis + i * ta + j * tb + k * tc ).norm();
                                 if( std::abs( pos_delta - radius ) < min_shell_width )
                                 {
                                     neighbours.push_back( { atom_one, atom_two, { i, j, k } } );
