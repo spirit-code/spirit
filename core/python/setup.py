@@ -128,6 +128,7 @@ if __name__ == "__main__":
         entry_points={
             "console_scripts": [
                 "spirit-mkinteraction = spirit_cli_tools.mkinteraction:cli [dev]",
+                "spirit-cfgconvert = spirit_cli_tools.cfgconvert:cli",
             ]
         },
         package_data={
