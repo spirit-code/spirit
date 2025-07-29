@@ -29,7 +29,7 @@ option( SPIRIT_USE_HDF5         "Enable HDF5 library for data export and import.
 ### Set the scalar type used in the Spirit library
 option( SPIRIT_SCALAR_TYPE      "Use std threads to speed up certain parts of the code." "double" )
 ### Set the compute capability for CUDA compilation
-option( SPIRIT_CUDA_ARCH        "Use std threads to speed up certain parts of the code." "60"  )
+option( SPIRIT_CUDA_ARCH        "Use std threads to speed up certain parts of the code." "75"  )
 ####################################################################
 
 
