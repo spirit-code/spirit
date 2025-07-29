@@ -11,8 +11,8 @@ from wheel.bdist_wheel import bdist_wheel as bdist_wheel_
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 NAME = "spirit"
-PACKAGES = ["spirit", "spirit.parameters"]
-META_PATH = os.path.join(HERE, "spirit", "__init__.py")
+PACKAGES = ["spirit", "spirit.parameters", "spirit_cli_tools"]
+META_PATH = os.path.join("spirit", "__init__.py")
 KEYWORDS = ["Spirit", "Spin Dynamics"]
 CLASSIFIERS = [
     "Development Status :: 4 - Beta",
@@ -122,8 +122,17 @@ if __name__ == "__main__":
         packages=PACKAGES,
         classifiers=CLASSIFIERS,
         install_requires=INSTALL_REQUIRES,
+        extras_require={
+            "dev": ["jinja2", "tree-sitter", "tree-sitter-cpp"],
+        },
+        entry_points={
+            "console_scripts": [
+                "spirit-mkinteraction = spirit_cli_tools.mkinteraction:cli [dev]",
+            ]
+        },
         package_data={
             "spirit": ["libSpirit.dylib", "libSpirit.so", "Spirit.dll"],
+            "spirit_cli_tools": ["*.j2"],
         },
         cmdclass={"bdist_wheel": bdist_wheel},
     )

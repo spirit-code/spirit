@@ -1,1 +1,5 @@
 pre-commit
+
+jinja2
+tree-sitter
+tree-sitter-cpp

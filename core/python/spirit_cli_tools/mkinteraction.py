@@ -675,5 +675,9 @@ def main(argv: list[str]) -> int:
     return 0
 
 
+def cli() -> int:
+    return main(sys.argv)
+
+
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
