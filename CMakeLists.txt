@@ -13,7 +13,6 @@ cmake_policy( SET CMP0094 NEW )
 set( SPIRIT_PRINT_SOURCES     OFF  CACHE BOOL "Print Spirit Headers and Sources from CMake." )
 ### These decide which projects are built
 set( SPIRIT_BUILD_FOR_JS      OFF  CACHE BOOL "Build the JavaScript library." )
-set( SPIRIT_BUILD_FOR_JULIA   OFF  CACHE BOOL "Build the shared library for Julia." )
 set( SPIRIT_BUILD_FOR_PYTHON  ON   CACHE BOOL "Build the shared library for Python." )
 set( SPIRIT_BUILD_FOR_CXX     ON   CACHE BOOL "Build the static library for C++ applications" )
 ### Feature switches for Spirit

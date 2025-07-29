@@ -12,7 +12,6 @@ cmake_minimum_required( VERSION 3.18 FATAL_ERROR )
 option( SPIRIT_PRINT_SOURCES    "Print Headers and Sources from Cmake."                  OFF )
 ### These decide which projects are built
 option( SPIRIT_BUILD_FOR_JS     "Build the JavaScript library."                          OFF )
-option( SPIRIT_BUILD_FOR_JULIA  "Build the shared library for Julia."                    OFF )
 option( SPIRIT_BUILD_FOR_PYTHON "Build the shared library for Python."                   ON  )
 option( SPIRIT_BUILD_FOR_CXX    "Build the static library for C++ applications"          ON  )
 ### Feature switches for Spirit
@@ -59,12 +58,10 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 ######### Some restrictions on the options #########################
 if( SPIRIT_USE_CUDA )
     ### If CUDA is used, we use float and and we cannot use OpenMP
-    ### and we cannot build for JS or Julia
     set( SPIRIT_USE_STDPAR       OFF )
     set( SPIRIT_USE_OPENMP       OFF )
     set( SPIRIT_SCALAR_TYPE      float )
     set( SPIRIT_BUILD_FOR_JS     OFF )
-    set( SPIRIT_BUILD_FOR_JULIA  OFF )
     set( SPIRIT_USE_FFTW         OFF )
     ### Enable CUDA language support
     enable_language( CUDA )
@@ -74,13 +71,11 @@ endif()
 if( SPIRIT_USE_STDPAR )
     set( SPIRIT_USE_CUDA         OFF )
     set( SPIRIT_BUILD_FOR_JS     OFF )
-    set( SPIRIT_BUILD_FOR_JULIA  OFF )
 endif()
 #-----
 if( SPIRIT_USE_OPENMP )
     set( SPIRIT_USE_CUDA         OFF )
     set( SPIRIT_BUILD_FOR_JS     OFF )
-    set( SPIRIT_BUILD_FOR_JULIA  OFF )
 endif()
 #-----
 if( SPIRIT_BUILD_FOR_JS )
@@ -88,7 +83,6 @@ if( SPIRIT_BUILD_FOR_JS )
     set( SPIRIT_SCALAR_TYPE      float )
     ### UI-Web needs to be built alone, as it uses a different toolchain
     set( SPIRIT_BUILD_TEST       OFF )
-    set( SPIRIT_BUILD_FOR_JULIA  OFF )
     set( SPIRIT_BUILD_FOR_PYTHON OFF )
     set( SPIRIT_BUILD_FOR_CXX    OFF )
     ### Emscripten cannot use cuda or threads
@@ -730,38 +724,6 @@ if( SPIRIT_BUILD_FOR_PYTHON )
 endif()
 ####################################################################
 
-
-######### Julia ####################################################
-if( SPIRIT_BUILD_FOR_JULIA )
-    message( STATUS ">> Building shared library for Julia" )
-
-    #--------------------------------------------------
-    add_library( ${META_PROJECT_NAME}_julia SHARED $<TARGET_OBJECTS:${META_PROJECT_NAME}> )
-    ### Forward public includes from the object library
-    target_include_directories(${META_PROJECT_NAME}_julia PUBLIC
-        $<TARGET_PROPERTY:${META_PROJECT_NAME},INTERFACE_INCLUDE_DIRECTORIES>)
-    ### Apply interface link dependencies from the object library
-    target_link_libraries(${META_PROJECT_NAME}_julia PRIVATE
-        $<TARGET_PROPERTY:${META_PROJECT_NAME},INTERFACE_LINK_LIBRARIES>)
-    #--------------------------------------------------
-
-    #----- Set output location & name
-    ### We want it to be called spirit, not spirit_julia, and to
-    ### be placed under julia/spirit/ s.t. it is directly part of
-    ### the julia spirit bindings module/package
-    set( JLLIB_OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/julia/Spirit/ )
-    set_target_properties( ${META_PROJECT_NAME}_julia PROPERTIES
-        OUTPUT_NAME              "${META_PROJECT_NAME}"
-        LIBRARY_OUTPUT_DIRECTORY ${JLLIB_OUTPUT_DIR} )
-    foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
-        string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
-        set_target_properties( ${META_PROJECT_NAME}_julia PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}          ${JLLIB_OUTPUT_DIR} )
-    endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
-    #--------------------------------------------------
-endif()
-####################################################################
-
-
 ######### IDE Folders ##############################################
 ### Folder include
 source_group( "include\\data"                               FILES ${HEADER_SPIRIT_DATA} )
@@ -826,16 +788,6 @@ if( SPIRIT_BUILD_FOR_PYTHON )
     endif()
 endif()
 #--------------------------------------------------
-
-# #----- Shared library and julia tests
-# if( SPIRIT_BUILD_FOR_JULIA )
-#     install( TARGETS   ${META_PROJECT_NAME}_julia DESTINATION bin )
-#     install( DIRECTORY julia/Spirit               DESTINATION julia )
-#     # if( SPIRIT_BUILD_TEST )
-#     #   install( TARGETS ${JULIA_TEST_EXECUTABLES} DESTINATION julia/test )
-#     # endif()
-# endif()
-# #--------------------------------------------------
 
 ####################################################################
 
