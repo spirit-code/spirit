@@ -546,19 +546,34 @@ jobs:
         working-directory: ${{runner.workspace}}/build
         run: cmake --build . --config $BUILD_TYPE -j 2
 
-  build-ui-qt:
+  build-ui:
+    name: 'Build UI: ${{ matrix.ui }}'
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ui: QT
+          - ui: IMGUI
     env:
       BUILD_TYPE: Release
-      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=ON
+      CMAKE_FLAGS_QT: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=ON
+      CMAKE_FLAGS_IMGUI: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Qt5
+        if: ${{ matrix.ui == 'QT' }}
         run: |
           sudo apt-get update
           sudo apt-get install -y qtbase5-dev libqt5charts5-dev
+
+      - name: Install ImGUI dependencies
+        if: ${{ matrix.ui == 'IMGUI' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwayland-dev libxkbcommon-dev xorg-dev libgtk-3-dev
 
       - name: Create build folder
         run: cmake -E make_directory ${{runner.workspace}}/build
@@ -566,7 +581,11 @@ jobs:
       - name: Configure
         shell: bash
         working-directory: ${{runner.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
+        run: >
+          cmake
+          $GITHUB_WORKSPACE
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+          $CMAKE_FLAGS_${{ matrix.ui }}
 
       - name: Build
         shell: bash
