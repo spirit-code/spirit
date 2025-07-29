@@ -72,7 +72,7 @@ jobs:
         shell: bash
         run: |
           git ls-files core/python/{,**/}*.py | xargs black --check
-          git ls-files ui-python/{,**/}*.py | xargs black --check
+          git ls-files examples/python/{,**/}*.py | xargs black --check
 
       - name: Python code quality checks, linting
         shell: bash
