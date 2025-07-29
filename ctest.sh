@@ -1,2 +1,2 @@
-cd build
-ctest --output-on-failure $@
+#!/bin/sh
+ctest --test-dir build --output-on-failure $@

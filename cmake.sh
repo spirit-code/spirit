@@ -17,9 +17,7 @@ done
 if [ $DEBUG ]
 then
     echo "-- >> CMake: Using Debug Build Type"
-    cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug .
+    cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug
 else
-    cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .
+    cmake -B build -S .
 fi
-
-ln -sf build/compile_commands.json compile_commands.json

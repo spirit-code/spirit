@@ -1,2 +1,2 @@
-cd build
-make $1
+#!/bin/sh
+cmake --build build $@

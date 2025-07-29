@@ -1,2 +1,2 @@
-cd build
-make install $1
+#!/bin/sh
+cmake --install build

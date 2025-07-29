@@ -1,3 +1,4 @@
+#!/bin/sh
 find ./build ! -name .gitkeep ! -wholename ./build -delete
 rm -f compile_commands.json
 rm -rf Debug
