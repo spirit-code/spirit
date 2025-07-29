@@ -1,39 +1,42 @@
 import codecs
-import os
-import platform
-import re
-import shutil
-import stat
-import subprocess
-import sys
 import datetime
+import os
+import re
+import subprocess
 
-from setuptools import setup, Command
+from setuptools import setup
 from pkg_resources import get_build_platform
 from wheel.bdist_wheel import bdist_wheel as bdist_wheel_
 
+HERE = os.path.abspath(os.path.dirname(__file__))
 
 NAME = "spirit"
 PACKAGES = ["spirit", "spirit.parameters"]
-META_PATH = os.path.join("spirit", "__init__.py")
+META_PATH = os.path.join(HERE, "spirit", "__init__.py")
 KEYWORDS = ["Spirit", "Spin Dynamics"]
 CLASSIFIERS = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Natural Language :: English",
     "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
     "Programming Language :: C",
     "Programming Language :: C++",
     "Programming Language :: Python",
-    "Topic :: Scientific/Engineering",
-    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 INSTALL_REQUIRES = ["numpy"]
 
 ###############################################################################
-
-HERE = os.path.abspath(os.path.dirname(__file__))
 
 
 def read(*parts):
@@ -60,97 +63,57 @@ def find_meta(meta):
     raise RuntimeError("Unable to find __{meta}__ string.".format(meta=meta))
 
 
+class bdist_wheel(bdist_wheel_):
+    def finalize_options(self):
+        super().finalize_options()
+        platform = os.environ.get("SPIRIT_PLATFORM_OVERRIDE", "")
+        self.plat_name = platform if platform else get_build_platform()
+        self.plat_name_supplied = True
+
+
 def get_git_commit_datetime():
     try:
-        commit_hash = (
-            subprocess.check_output(
-                "git rev-parse HEAD", shell=True, stderr=subprocess.STDOUT
-            )
-            .decode("utf-8")
-            .strip()
-        )
-        commit_datetime = (
-            subprocess.check_output(
-                "git show -s --format=%ci " + commit_hash,
-                shell=True,
-                stderr=subprocess.STDOUT,
-            )
-            .decode("utf-8")
-            .strip()
-        )
-        print(commit_datetime)
+        commit_hash = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], encoding="utf-8"
+        ).strip()
+        commit_datetime = subprocess.check_output(
+            ["git", "show", "--quiet", "--format=%ci", commit_hash],
+            encoding="utf-8",
+        ).strip()
         commit_datetime = " ".join(commit_datetime.split()[:-1])
-        print(commit_datetime)
         datetime_object = datetime.datetime.strptime(
             commit_datetime, "%Y-%m-%d %H:%M:%S"
         )
-        print("{:%Y%m%d%H%M%S}".format(datetime_object))
         return "{:%Y%m%d%H%M%S}".format(datetime_object)
     except subprocess.CalledProcessError as cpe:
         print(cpe.output)
-        return "00000000000000"
+        return None
 
 
-import unittest
-
-
-def my_test_suite():
-    test_loader = unittest.TestLoader()
-    test_suite = test_loader.discover("test", pattern="*.py")
-    return test_suite
-
-
-class bdist_wheel(bdist_wheel_):
-    def finalize_options(self):
-        from sys import platform as _platform
-
-        platform_name = get_build_platform()
-        if _platform == "linux" or _platform == "linux2":
-            # Linux
-            platform_name = "manylinux1_x86_64"
-
-        bdist_wheel_.finalize_options(self)
-        self.universal = True
-        self.plat_name_supplied = True
-        self.plat_name = platform_name
-
-
-class CleanCommand(Command):
-    """Custom clean command to tidy up the project root."""
-
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        os.system("rm -vrf ./build ./dist ./*.pyc ./*.tgz ./*.egg-info")
-
-
-if __name__ == "__main__":
-    # If the environment variable SPIRIT_VERSION_SUFFIX is defined,
+def make_version():
+    # If the environment variable SPIRIT_ADD_VERSION_SUFFIX is defined,
     # it is appended to the package version number.
-    version_suffix = ""
+    bare_version = find_meta("version")
     add_version_suffix = os.environ.get("SPIRIT_ADD_VERSION_SUFFIX", "")
     if add_version_suffix.lower() in ("yes", "true", "t", "1"):
         timepoint_string = get_git_commit_datetime()
-        if timepoint_string == "00000000000000":
+        if timepoint_string is None:
             timepoint_string = "{:%Y%m%d%H%M}".format(datetime.datetime.now())
-        version_suffix = ".dev" + timepoint_string
-        print("setup.py: package version suffix = ", version_suffix)
+        return f"{bare_version}.dev{timepoint_string}"
+    else:
+        return bare_version
 
-    # Setup the package info
+
+if __name__ == "__main__":
     setup(
         name=NAME,
+        python_requires=">=3.11",
         description=find_meta("description"),
         long_description=read("README.md"),
         long_description_content_type="text/markdown",
         license=find_meta("license"),
         url=find_meta("uri"),
-        version=find_meta("version") + version_suffix,
+        version=make_version(),
         author=find_meta("author"),
         author_email=find_meta("email"),
         maintainer=find_meta("author"),
@@ -162,6 +125,5 @@ if __name__ == "__main__":
         package_data={
             "spirit": ["libSpirit.dylib", "libSpirit.so", "Spirit.dll"],
         },
-        cmdclass={"bdist_wheel": bdist_wheel, "clean": CleanCommand},
-        test_suite="setup.my_test_suite",
+        cmdclass={"bdist_wheel": bdist_wheel},
     )

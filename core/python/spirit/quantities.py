@@ -1,6 +1,4 @@
 """
-Quantities
-====================
 """
 
 from spirit import system

@@ -1,7 +1,4 @@
 """
-Simulation
-====================
-
 This module of Spirit is used to run and monitor iterative calculation methods.
 
 If many iterations are called individually, one should use the single shot simulation functionality.

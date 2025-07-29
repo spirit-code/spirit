@@ -1,0 +1,58 @@
+# Doxyfile 1.13.2
+
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = "Spirit"
+OUTPUT_DIRECTORY       =
+
+
+OUTPUT_LANGUAGE        = English
+FULL_PATH_NAMES        = YES
+
+STRIP_FROM_PATH        =
+STRIP_FROM_INC_PATH    =
+
+OPTIMIZE_OUTPUT_FOR_C  = YES
+MARKDOWN_SUPPORT       = YES
+MARKDOWN_ID_STYLE      = DOXYGEN
+AUTOLINK_SUPPORT       = YES
+
+ALIASES =  "rst=\verbatim embed:rst"
+ALIASES += "rst{1}=\verbatim embed:rst:\1"
+ALIASES += "endrst=\endverbatim"
+
+EXTRACT_ALL            = YES
+CASE_SENSE_NAMES       = YES
+
+MAX_INITIALIZER_LINES  = 30
+
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_IF_INCOMPLETE_DOC = YES
+WARN_NO_PARAMDOC       = NO
+WARN_IF_UNDOC_ENUM_VAL = NO
+WARN_LAYOUT_FILE       = YES
+WARN_AS_ERROR          = NO
+
+INPUT                  = ./core/include/Spirit
+INPUT_ENCODING         = UTF-8
+FILE_PATTERNS          = *.h
+EXCLUDE_PATTERNS       = */DLL*.h
+
+GENERATE_HTML          = NO
+GENERATE_LATEX         = NO
+
+GENERATE_XML           = YES
+XML_OUTPUT             = core/docs/c-api/xml
+XML_PROGRAMLISTING     = NO
+
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+SEARCH_INCLUDES        = NO
+PREDEFINED             = PREFIX:= \
+                         SUFFIX:=
+
+EXPAND_AS_DEFINED      =
+SKIP_FUNCTION_MACROS   = YES

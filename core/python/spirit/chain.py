@@ -1,7 +1,4 @@
 """
-Chain
-====================
-
 Manipulate the chain of spin systems (also called images), e.g. add, remove or change active image.
 Get information, such as number of images or energies and reaction coordinates.
 """

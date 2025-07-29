@@ -1,7 +1,4 @@
 """
-HTST
-====================
-
 Harmonic transition state theory.
 
 Note that `calculate_prefactor` needs to be called before using any of the getter functions.

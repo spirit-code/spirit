@@ -3,7 +3,7 @@ MESSAGE( STATUS ">> --------------------- Spirit -------------------------------
 
 
 ######### CMake Version ############################################
-cmake_minimum_required( VERSION 3.10 FATAL_ERROR )
+cmake_minimum_required( VERSION 3.18 FATAL_ERROR )
 ####################################################################
 
 
@@ -68,6 +68,7 @@ if( SPIRIT_USE_CUDA )
     set( SPIRIT_USE_FFTW         OFF )
     ### Enable CUDA language support
     enable_language( CUDA )
+    set( CMAKE_CUDA_ARCHITECTURES "${SPIRIT_CUDA_ARCH}" )
 endif()
 #-----
 if( SPIRIT_USE_STDPAR )
@@ -106,7 +107,7 @@ endif()
 #----- Get git revision
 include( GetGitRevisionDescription )
 get_git_head_revision( GIT_REFSPEC GIT_SHA1 )
-string( SUBSTRING "${GIT_SHA1}" 0 13 GIT_REV )
+string( SUBSTRING "${GIT_SHA1}" 0 10 GIT_REV )
 #----- Meta information about the project
 set( META_PROJECT_NAME         "Spirit" )
 set( META_PROJECT_DESCRIPTION  "Optimizations and Dynamics Framework for atomistic Spin systems" )
@@ -146,17 +147,17 @@ include(CompilerFlags)
 ######### CUDA decisions ###########################################
 if( SPIRIT_USE_CUDA )
     # set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
-    find_package( CUDA 8 REQUIRED )
+    find_package( CUDAToolkit 12 REQUIRED )
 
     # set( CUDA_PROPAGATE_HOST_FLAGS ON )
     # --std=c++17 flag may be necessary, but it is propagated from global flags...
     # if it appears twice, for some reason the compilation breaks
 
-    set( SPIRIT_CUDA_LIBS "${CUDA_LIBRARIES};${CUDA_CUFFT_LIBRARIES};${CUDA_curand_LIBRARY}" )
-    set( FFT_LIB          ${CUDA_CUFFT_LIBRARIES} )
+    set( SPIRIT_CUDA_LIBS "CUDA::cudart;CUDA::cufft;CUDA::curand" )
+    set( FFT_LIB           CUDA::cufft )
 
     if( "${CMAKE_CUDA_COMPILER_ID}" MATCHES "NVIDIA" ) 
-        set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo -arch=sm_${SPIRIT_CUDA_ARCH} --expt-relaxed-constexpr --expt-extended-lambda" )
+        set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo --expt-relaxed-constexpr --expt-extended-lambda" )
         ### Deactivate CUDA warning inside Eigen such as "warning: __host__ annotation is ignored on a function("Quaternion") that is explicitly defaulted on its first declaration"
         set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --diag-suppress=20011 --diag-suppress=20012 --diag-suppress=20014 --diag-suppress=1675")
         ### Display warning number when writing a warning
@@ -231,14 +232,44 @@ endif()
 
 ######### TBB decisions ############################################
 if( SPIRIT_USE_STDPAR )
-    include( FindTBB )
-    if( TBB_FOUND )
-        set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_STDPAR )
-        message( STATUS ">> using TBB for parallel STL" )
+    include(CheckCXXSourceCompiles)
+    set( SOURCE_CXX17_PARALLEL_ALGORITHM "
+      #include <execution>
+      int main()
+      {
+        std::execution::seq;
+        std::execution::par;
+        std::execution::par_unseq;
+        return 0;
+      }
+    " )
+    check_cxx_source_compiles( "${SOURCE_CXX17_PARALLEL_ALGORITHM}"
+                               HAVE_BUILTIN_CXX17_PARALLEL_ALGORITHM )
+
+    if( NOT HAVE_BUILTIN_CXX17_PARALLEL_ALGORITHM )
+        # Try to find TBB module
+        find_package( TBB )
+        if( TBB_FOUND )
+            set( TBB_LIB TBB::tbb )
+            message( STATUS ">> using TBB for parallel STL" )
+        else()
+            set( TBB_LIB )
+            message( WARNING ">> TBB could not be found." )
+        endif()
+        # All of these symbols are required to use this feature.
+        # So, if this compiles even if TBB was not found it should be fine.
+        list( APPEND CMAKE_REQUIRED_LIBRARIES ${TBB_LIB} )
+        check_cxx_source_compiles( "${SOURCE_CXX17_PARALLEL_ALGORITHM}"
+                                   HAVE_TBB_CXX17_PARALLEL_ALGORITHM )
+        set( HAVE_CXX17_PARALLEL_ALGORITHM ${HAVE_TBB_CXX17_PARALLEL_ALGORITHM} )
     else()
-        message( WARNING ">> TBB could not be found." )
-        set( SPIRIT_USE_STDPAR OFF )
+        set( HAVE_CXX17_PARALLEL_ALGORITHM ${HAVE_BUILTIN_CXX17_PARALLEL_ALGORITHM} )
     endif()
+
+    if( NOT HAVE_CXX17_PARALLEL_ALGORITHM )
+        message( FATAL_ERROR "C++17 execution policies are required for SPIRIT_USE_STDPAR=ON" )
+    endif()
+    set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_STDPAR )
 endif()
 ######### TBB decisions ############################################
 

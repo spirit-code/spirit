@@ -1,7 +1,9 @@
 ######### CMake Version ############################################
-cmake_minimum_required( VERSION 3.12 )
+cmake_minimum_required( VERSION 3.18 )
 ### Distinguish between Clang and AppleClang
 cmake_policy( SET CMP0025 NEW )
+### Allow finding python virtual-environments
+cmake_policy( SET CMP0094 NEW )
 ####################################################################
 
 
@@ -164,6 +166,7 @@ elseif( UNIX )
     set( PLATFORM_NAME "UNIX" )
 elseif( WIN32 )
     set( PLATFORM_NAME "Win32" )
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     add_compile_definitions( NOMINMAX _CRT_SECURE_NO_WARNINGS )
 endif()
 ### Compiler-specific flags
@@ -174,7 +177,7 @@ if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" )
 elseif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
     ### Disable unnecessary warnings on Windows, such as C4996 and C4267, C4244
     ### Treat deprecation as a warning: /w34996
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNOMINMAX /utf-8 /wd4018 /wd4244 /wd4267 /wd4661 /wd4996 /w34996" )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNOMINMAX /bigobj /utf-8 /wd4018 /wd4244 /wd4267 /wd4661 /wd4996 /w34996" )
 endif()
 ###
 message( STATUS ">> We are on the platform: ${PLATFORM_NAME}" )
@@ -276,14 +279,14 @@ install( DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/docs/
          COMPONENT spirit_root_files )
 install( FILES ${CMAKE_CURRENT_LIST_DIR}/README.md
                ${CMAKE_CURRENT_LIST_DIR}/VERSION.txt
-         DESTINATION ./
+         DESTINATION .
          COMPONENT spirit_root_files )
 
 if( SPIRIT_BUILD_FOR_CXX )
     install( DIRECTORY input DESTINATION bin COMPONENT spirit_root_files )
 endif()
 
-install( FILES ${CMAKE_CURRENT_LIST_DIR}/LICENSE.txt DESTINATION ./ COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/LICENSE.txt DESTINATION . COMPONENT spirit_licenses )
 
 install( FILES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/qhull/COPYING.txt DESTINATION licenses RENAME qhull.txt COMPONENT spirit_licenses )
 install( FILES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/fmt/LICENSE.rst   DESTINATION licenses RENAME fmt.rst   COMPONENT spirit_licenses )

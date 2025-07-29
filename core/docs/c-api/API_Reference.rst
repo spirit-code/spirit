@@ -2,7 +2,7 @@ Full API reference
 ==================================
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 4
 
     Spirit/Chain.h              <Chain>
     Spirit/Configurations.h     <Configurations>
