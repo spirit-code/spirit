@@ -229,6 +229,7 @@ jobs:
 
   test-nvcpp:
     name: nvcpp ${{ matrix.parallelisation }} (ubuntu-22.04)
+    if: false # The nvc++ compiler is currently incompatible with toml++
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
