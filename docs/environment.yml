@@ -1,0 +1,16 @@
+---
+name: RTD
+channels:
+  - nodefaults
+  - conda-forge
+dependencies:
+  - python>=3.11
+  - pandoc
+  - sphinx>=8.2
+  - sphinx_rtd_theme
+  - sphinx-markdown-tables
+  - myst-parser
+  - doxygen
+  - breathe
+  - numpy
+  - cmake>=3.20

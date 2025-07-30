@@ -242,6 +242,9 @@ apidoc_modules = [
     }
 ]
 
+# This allows skipping the build process because the object library is never required
+autodoc_mock_imports = ["spirit.spiritlib"]
+
 
 def pre_build_hook(_):
     """
@@ -256,8 +259,8 @@ def pre_build_hook(_):
     subprocess.check_call(
         [
             "cmake",
-            "-B build",
-            "-S .",
+            "-B", "build",
+            "-S",  ".",
             "-DSPIRIT_BUILD_FOR_CXX=OFF",
             "-DSPIRIT_BUILD_TEST=ON",
             "-DSPIRIT_SKIP_HTST=ON",
