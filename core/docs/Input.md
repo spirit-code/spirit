@@ -3,17 +3,17 @@ Spirit inputfile
 
 The following sections will list and explain the input file keywords.
 
-1. [General Settings and Log](#General)
-2. [Geometry](#Geometry)
-3. [Heisenberg Hamiltonian](#Heisenberg)
-4. [Gaussian Hamiltonian](#Gaussian)
-5. [Method Output](#MethodOutput)
-6. [Method Parameters](#MethodParameters)
-7. [Pinning](#Pinning)
-8. [Disorder and Defects](#Defects)
+1. [General Settings and Log](#general-settings-and-log)
+2. [Geometry](#geometry)
+    1. [Pinning](#pinning)
+    2. [Disorder and Defects](#disorder-and-defects)
+3. [Heisenberg Hamiltonian](#heisenberg-hamiltonian)
+4. [Method Configuration](#method-configuration)
+    1. [Method Output](#method-output)
+    2. [Method Parameters](#method-parameters)
 
 
-General Settings and Log <a name="General"></a>
+General Settings and Log
 ----------------------------------------------------
 
 ```toml
@@ -59,7 +59,7 @@ at all.
 | DEBUG      |    6    | Also deeper debug-info |
 
 
-Geometry <a name="Geometry"></a>
+Geometry
 ----------------------------------------------------
 
 The Geometry of a spin system is specified in form of a bravais lattice
@@ -150,7 +150,113 @@ The basis atoms are specified in units of the Bravais vectors.
 The atomic moments `mu_s` are specified in units of the Bohr magneton `mu_B`.
 
 
-Heisenberg Hamiltonian <a name="Heisenberg"></a>
+### Pinning
+
+Note that for this feature you need to build with `SPIRIT_ENABLE_PINNING`
+set to `ON` in cmake.
+
+When pinning the boundary you have to specify how many columns, rows and layers
+of cells should be pinned. That means `pinning.boundary` has to be an array of
+length 3 where each entry is either a number for symmetric counts or a pair of values.
+To set the direction of the pinned cells, you need to give the `pinning.cell`
+keyword and one vector for each basis atom.
+
+You can for example do the following to create a U-shaped pinning in x-direction:
+```toml
+[geometry]
+pinning.boundary = [
+ [2, 0], # Pin left side of the sample (2 rows)
+ 2,      # Pin top and bottom sides (2 rows each)
+ 0
+]
+# Pin the atoms to x-direction
+pinning.cell = [
+  [1, 0, 0]
+]
+```
+
+To specify individual pinned sites (overriding the above pinning settings),
+insert a table into your input. For example:
+```toml
+[geometry]
+### Specify the number of pinned sites and then the sites (in terms of translations) and directions
+pinned = """
+i  da db dc     x   y   z
+0   0  0  0   1.0 0.0 0.0
+0   1  0  0   0.0 1.0 0.0
+0   0  1  0   0.0 0.0 1.0
+"""
+```
+You may also place it into a separate file with the `file://` prefix, e.g.
+```toml
+[geometry]
+### Read pinned sites from a separate file
+pinned = "file://input/pinned.txt"
+```
+The file should either contain only the pinned sites or you need to specify `n_pinned`
+inside the file.
+
+
+### Disorder and Defects
+
+Note that for this feature you need to build with `SPIRIT_ENABLE_DEFECTS`
+set to `ON` in cmake.
+
+In order to specify disorder across the lattice, you can write for example a
+single atom basis with 50% chance of containing one of two atom types (0 or 1):
+```toml
+[geometry]
+# iatom  atom_type  concentration   mu_s  ...
+atom_types = """
+i type    c    mu_s
+0    1  2.0     0.5
+"""
+```
+
+Note that you have to also specify the magnetic moment, as this is now site-
+and atom type dependent.
+
+A two-atom basis where
+- the first atom is type 0
+- the second atom is 70% type 1 and 30% type 2
+```toml
+[geometry]
+# iatom  atom_type  concentration  mu_s
+atom_types = """
+i type     c  mu_s
+0    0     1   1.0
+1    1   0.7   2.5
+1    2   0.3   2.3
+"""
+```
+The total concentration on a site should not be more than `1`. If it is less
+than `1`, vacancies will appear.
+
+To specify defects, be it vacancies or impurities, you may fix atom types for
+sites of the whole lattice by inserting a list into your input. For example:
+```toml
+[geometry]
+### Atom types: type index 0..n or or vacancy (type < 0)
+### Specify the number of defects and then the defects in terms of translations and type
+### i  da db dc  itype
+defects = """
+i da db dc type
+0  0 0 0    -1
+0  1 0 0    -1
+0  0 1 0    -1
+"""
+```
+You may also place it into a separate file with the `file://` prefix,
+e.g.
+```toml
+[geometry]
+### Read defects from a separate file
+defects_from = "file://input/defects.txt"
+```
+The file should either contain only the defects or you need to specify `n_defects`
+inside the file.
+
+Heisenberg Hamiltonian
 ----------------------------------------------------
 
 To use a Heisenberg Hamiltonian, use either `heisenberg_neighbours` or `heisenberg_pairs`
@@ -289,12 +395,14 @@ Note that the quadruplet interaction is defined as
 **Units:**
 
 The external field is specified in Tesla, while anisotropy is specified in meV.
-Pairwise interactions are specified in meV per unique pair \<ij\>,
-while quadruplets are specified in meV per unique quadruplet \<ijkl\>.
+Pairwise interactions are specified in meV per unique pair `<ij>`,
+while quadruplets are specified in meV per unique quadruplet `<ijkl>`.
 
 
-Method Output <a name="MethodOutput"></a>
-----------------------------------------------------
+Method Configuration
+-------------------------------------------------------------------
+
+### Method Output
 
 For `llg` and equivalently `mc` and `gneb`, you can specify which
 output you want your simulations to create.
@@ -350,8 +458,7 @@ chain_step = false    # Save the whole chain at each step
 ```
 
 
-Method Parameters <a name="MethodParameters"></a>
-----------------------------------------------------
+### Method Parameters
 
 Again, the different Methods share a few common parameters.
 
@@ -435,114 +542,6 @@ spring_constant = 1.0
 n_energy_interpolations = 10
 ```
 
-
-Pinning <a name="Pinning"></a>
-----------------------------------------------------
-
-Note that for this feature you need to build with `SPIRIT_ENABLE_PINNING`
-set to `ON` in cmake.
-
-When pinning the boundary you have to specify how many columns, rows and layers
-of cells should be pinned. That means `pinning.boundary` has to be an array of
-length 3 where each entry is either a number for symmetric counts or a pair of values.
-To set the direction of the pinned cells, you need to give the `pinning.cell`
-keyword and one vector for each basis atom.
-
-You can for example do the following to create a U-shaped pinning in x-direction:
-```toml
-[geometry]
-pinning.boundary = [
- [2, 0], # Pin left side of the sample (2 rows)
- 2,      # Pin top and bottom sides (2 rows each)
- 0
-]
-# Pin the atoms to x-direction
-pinning.cell = [
-  [1, 0, 0]
-]
-```
-
-To specify individual pinned sites (overriding the above pinning settings),
-insert a table into your input. For example:
-```toml
-[geometry]
-### Specify the number of pinned sites and then the sites (in terms of translations) and directions
-pinned = """
-i  da db dc     x   y   z
-0   0  0  0   1.0 0.0 0.0
-0   1  0  0   0.0 1.0 0.0
-0   0  1  0   0.0 0.0 1.0
-"""
-```
-You may also place it into a separate file with the `file://` prefix, e.g.
-```toml
-[geometry]
-### Read pinned sites from a separate file
-pinned = "file://input/pinned.txt"
-```
-The file should either contain only the pinned sites or you need to specify `n_pinned`
-inside the file.
-
-
-Disorder and Defects <a name="Defects"></a>
-----------------------------------------------------
-
-Note that for this feature you need to build with `SPIRIT_ENABLE_DEFECTS`
-set to `ON` in cmake.
-
-In order to specify disorder across the lattice, you can write for example a
-single atom basis with 50% chance of containing one of two atom types (0 or 1):
-```toml
-[geometry]
-# iatom  atom_type  concentration   mu_s  ...
-atom_types = """
-i type    c    mu_s
-0    1  2.0     0.5
-"""
-```
-
-Note that you have to also specify the magnetic moment, as this is now site-
-and atom type dependent.
-
-A two-atom basis where
-- the first atom is type 0
-- the second atom is 70% type 1 and 30% type 2
-```toml
-[geometry]
-# iatom  atom_type  concentration  mu_s
-atom_types = """
-i type     c  mu_s
-0    0     1   1.0
-1    1   0.7   2.5
-1    2   0.3   2.3
-"""
-```
-The total concentration on a site should not be more than `1`. If it is less
-than `1`, vacancies will appear.
-
-To specify defects, be it vacancies or impurities, you may fix atom types for
-sites of the whole lattice by inserting a list into your input. For example:
-```toml
-[geometry]
-### Atom types: type index 0..n or or vacancy (type < 0)
-### Specify the number of defects and then the defects in terms of translations and type
-### i  da db dc  itype
-defects = """
-i da db dc type
-0  0 0 0    -1
-0  1 0 0    -1
-0  0 1 0    -1
-"""
-```
-You may also place it into a separate file with the `file://` prefix,
-e.g.
-```toml
-[geometry]
-### Read defects from a separate file
-defects_from = "file://input/defects.txt"
-```
-The file should either contain only the defects or you need to specify `n_defects`
-inside the file.
 
 
 ---

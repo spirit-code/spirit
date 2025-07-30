@@ -47,9 +47,9 @@ https://juspin.de
 Contents
 --------
 
-1. [Introduction](#Introduction)
-2. [Getting started with the Desktop User Interface](#Desktop)
-3. [Getting started with the Python Package](#Python)
+1. [Introduction](#introduction)
+2. [Getting started with the Desktop Interface](#getting-started-with-the-desktop-interface)
+3. [Getting started with the Python Package](#getting-started-with-the-python-package)
 
 ---------------------------------------------
 
@@ -59,7 +59,7 @@ Contents
 
 
 
-Introduction <a name="Introduction"></a>
+Introduction
 ---------------------------------------------
 
 #### A modern framework for magnetism science on clusters, desktops & laptops and even your Phone
@@ -116,7 +116,7 @@ hosted by the Research Centre Jülich.
 
 
 
-Getting started with the Desktop Interface <a name="Desktop"></a>
+Getting started with the Desktop Interface
 ---------------------------------------------
 
 See the build instructions for [Unix/OSX](docs/Build_Unix_OSX.md) or
@@ -148,7 +148,7 @@ to the restrictive license on QT-Charts.*
 
 
 
-Getting started with the Python Package <a name="Python"></a>
+Getting started with the Python Package
 ---------------------------------------------
 
 To install the *Spirit python package*, either build and install from source

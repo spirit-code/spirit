@@ -74,6 +74,7 @@ source_suffix = {
 myst_enable_extensions = [
     "dollarmath",
 ]
+myst_heading_anchors = 3
 
 
 # The master toctree document.
