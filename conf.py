@@ -73,6 +73,7 @@ source_suffix = {
 
 myst_enable_extensions = [
     "dollarmath",
+    "colon_fence",
 ]
 myst_heading_anchors = 3
 
@@ -259,8 +260,10 @@ def pre_build_hook(_):
     subprocess.check_call(
         [
             "cmake",
-            "-B", "build",
-            "-S",  ".",
+            "-B",
+            "build",
+            "-S",
+            ".",
             "-DSPIRIT_BUILD_FOR_CXX=OFF",
             "-DSPIRIT_BUILD_TEST=ON",
             "-DSPIRIT_SKIP_HTST=ON",
