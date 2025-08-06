@@ -18,6 +18,7 @@ SPIRIT
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7746551.svg)](https://doi.org/10.5281/zenodo.7746551)
 [![PyPI version](https://badge.fury.io/py/spirit.svg)](https://badge.fury.io/py/spirit)
+[![readthedocs](https://app.readthedocs.org/projects/spirit-docs/badge/?version=latest)](https://spirit-docs.readthedocs.io/en/latest)
 
 
 The code is released under [MIT License](LICENSE.txt).<br />
