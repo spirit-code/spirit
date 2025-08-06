@@ -9,6 +9,7 @@ dependencies:
   - sphinx>=8.2
   - sphinx_rtd_theme
   - sphinx-markdown-tables
+  - sphinx-design
   - myst-parser
   - doxygen
   - breathe

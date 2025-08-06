@@ -50,6 +50,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "core", "python"))
 extensions = [
     "breathe",
     "sphinx_markdown_tables",
+    "sphinx_design",
     "myst_parser",
     "sphinx.ext.intersphinx",
     "sphinx.ext.coverage",

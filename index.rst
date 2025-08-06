@@ -17,9 +17,9 @@ Spirit - Spin Simulation Framework
     Qt desktop user interface    <docs/UI-Qt>
     ImGui desktop user interface <docs/UI-ImGui>
     Input file specification     <core/docs/Input>
+    Hamiltonian                  <core/docs/Hamiltonian>
     Definitions                  <core/docs/Definitions>
     Additional features          <core/docs/Features>
-    Hamiltonian                  <core/docs/Hamiltonian>
 
 .. toctree::
     :maxdepth: 2
