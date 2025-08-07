@@ -406,7 +406,7 @@ def edit_io_function_calls(name: str, cpp_file: Path, *, dry_run: bool):
         if not any(match["name"][0].text == ifname for _, match in from_parse_matches):
             match = from_parse_matches[-1][1]["decl"][0]
             from_ws = " " * match.start_point.column
-            from_call = f"{input_function_name(name)}( tbl, geomerty, parameter_log )"
+            from_call = f"{input_function_name(name)}( tbl, geometry, parameter_log )"
             edits.append(
                 Edit.insert_line(
                     match.start_point.row,
@@ -437,7 +437,7 @@ def edit_io_function_calls(name: str, cpp_file: Path, *, dry_run: bool):
             set_match = set_matches[-1][1]["expr"][0]
 
             set_ws = " " * set_match.start_point.column
-            set_arg = f"std::move( {name.lower()}"
+            set_arg = f"std::move( {name.lower()} )"
             set_call = f"hamiltonian->set_data<Interaction::{name}>( {set_arg} )"
             edits.append(
                 Edit.insert_line(
@@ -659,9 +659,7 @@ def main(argv: list[str]) -> int:
         logger.warning("Source file '%s' already exists! Skipping...", io_cpp_path)
     else:
         logger.info("Source file created: '%s'", io_cpp_path)
-    edit_cmake(
-        fname_cpp, "HEADER_SPIRIT_ENGINE_IO_HAMILTONIAN", io_cpp_dir, dry_run=dry_run
-    )
+    edit_cmake(fname_cpp, "SOURCE_SPIRIT_IO_HAMILTONIAN", io_cpp_dir, dry_run=dry_run)
 
     # insert declarations into Hamiltonian I/O header file
     edit_io_function_declarations(

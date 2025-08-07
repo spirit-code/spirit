@@ -52,7 +52,9 @@ class SystemGetters(TestSystem):
         )
         E = system.get_energy(self.p_state)
         system.print_energy_array(p_state)
-        self.assertEqual(len(E_contribs.values()), 3)  # There should be 3 contributions
+        # the filer is required to enable all custom interactions by default
+        n_contributing = sum(1 for k in E_contribs if not k.startswith("Custom: "))
+        self.assertEqual(n_contributing, 3)  # There should be 3 contributions
         self.assertAlmostEqual(
             sum(E_contribs.values()), E, places=5
         )  # TODO: Apparently we can not go higher with the number of decimal places, because the order of summation differs. This Should be invesitgated.

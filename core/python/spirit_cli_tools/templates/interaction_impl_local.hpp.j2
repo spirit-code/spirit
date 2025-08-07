@@ -71,7 +71,7 @@ struct {{ name }}
     using Energy_Single_Spin = Functor::Local::Energy_Single_Spin_Functor<Energy, 1>;
 
     // Interaction name as string
-    static constexpr std::string_view name = R"({{ full_name }})";
+    static constexpr std::string_view name = R"(Custom: {{ full_name }})";
 
     static void applyGeometry(
         const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache,
@@ -115,6 +115,7 @@ inline scalar {{ name }}::Energy::operator()( Span<const Index> index, quantity<
         [this, state] SPIRIT_LAMBDA( const Index & idx ) -> scalar
         {
             // TODO: Add your Energy implementation
+            return 0.0;
         } );
 }
 
@@ -126,6 +127,7 @@ inline Vector3 {{ name }}::Gradient::operator()( Span<const Index> index, quanti
         [this, state] SPIRIT_LAMBDA( const Index & idx ) -> Vector3
         {
             // TODO: Add your Gradient implementation
+            return {0.0, 0.0, 0.0};
         } );
 }
 

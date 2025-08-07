@@ -7,7 +7,10 @@
 
 using Utility::Log_Level, Utility::Log_Sender;
 
+namespace IO
+{
 {% if make_tableparser %}
+
 namespace
 {
 
@@ -19,8 +22,8 @@ auto {{ name }}_from_File( Filter_File_Handle & table_file, const Data::Geometry
          fmt::format( "Reading \"{{ name }}\" table from \"{}\"", table_file.filename() ) );
 
     // parser initialization, choose wichever method suits your needs
-    using CustomTableParser = TableParser</* manual sequence of data types */>>;
-    // using CustomTableParser = TableParserInit</* data types using a sequence of std::array<T, N> */>>;
+    using CustomTableParser = TableParser</* manual sequence of data types */>;
+    // using CustomTableParser = TableParserInit</* data types using a sequence of std::array<T, N> */>;
     const CustomTableParser parser( { /* labels which are assumed to be lowercase */ } );
 
     const auto data = parser.parse( table_file, "n_{{ name | lower }}", /*max_columns=*/ 1 );
@@ -31,26 +34,19 @@ auto {{ name }}_from_File( Filter_File_Handle & table_file, const Data::Geometry
 }
 
 } // namespace
-
 {% endif %}
-namespace IO
-{
 
 {{ input_function_signature }}
 {
 {% if make_tableparser %}
-    Log( Log_Level::Debug, Log_Sender::IO,
-         fmt::format( "Reading \"{{ name }}\" table from \"{}\"", table_file.filename() ) );
+    auto {{ name | lower }} = tbl["{{ name | lower }}"].as_string();
+    if( !{{ name | lower }} )
+        return {};
 
-    // parser initialization, choose wichever method suits your needs
-    using CustomTableParser = TableParser</* manual sequence of data types */>>;
-    // using CustomTableParser = TableParserInit</* data types using a sequence of std::array<T, N> */>>;
-    const CustomTableParser parser( { /* labels which are assumed to be lowercase */ } );
+    auto table_handle = Filter_File_Handle::from_string( {{ name | lower }}->get() );
+    const auto result = {{ name }}_from_File( table_handle, geometry );
 
-    const auto data = parser.parse( table_file, "n_{{ name | lower }}", /*max_columns=*/ 1 );
-
-    auto result = Engine::Spin::Interaction::{{ name }}::Data{};
-
+    // TODO: provide some logging on what was read from the input file.
     return result;
 {% else %}
     // TODO: Implement how to read custom values from the "hamiltonian" input section to

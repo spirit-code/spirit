@@ -18,7 +18,7 @@ namespace Interaction
 {
 
 void {{ name }}::applyGeometry(
-    const Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache )
+    const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache )
 {
     // TODO: Here you can precaclulate some values that depend on the Geometry and store them in the cache
 }
@@ -46,7 +46,7 @@ Vector3 {{ name }}::Gradient_Local::operator()( const int ispin, const StateType
     // It should be able to calculate the local gradient more efficiently than the implementation below.
     // The function object has access to references of the data and cache values.
 
-    vectorfield energy( state.spin.size(), Vector3::Zero() );
+    vectorfield gradient( state.spin.size(), Vector3::Zero() );
     std::invoke( {{ name }}::Gradient( data, cache ), state, gradient );
     return gradient[ispin];
 };
