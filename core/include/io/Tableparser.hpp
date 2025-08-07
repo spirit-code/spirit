@@ -98,12 +98,20 @@ private:
     };
 
 public:
+    template<typename F = decltype( forwarding_factory<read_row_t> )>
+    [[nodiscard]] decltype( auto ) parse(
+        Filter_File_Handle & file_handle, const std::size_t n_columns_read = n_columns,
+        F transform_factory = forwarding_factory<read_row_t> ) const
+    {
+        return TableParser::parse( file_handle, "", n_columns_read, std::move( transform_factory ) );
+    }
+
     // parse function, transform_factory expects a second oder function whose result can transform the read in row into
     // a format that should be stored
     template<typename F = decltype( forwarding_factory<read_row_t> )>
     [[nodiscard]] decltype( auto ) parse(
-        Filter_File_Handle & file_handle, const std::string & table_size_id, const std::size_t n_columns_read,
-        F transform_factory = forwarding_factory<read_row_t> ) const
+        Filter_File_Handle & file_handle, const std::string & table_size_id,
+        const std::size_t n_columns_read = n_columns, F transform_factory = forwarding_factory<read_row_t> ) const
     {
         using Utility::Log_Level, Utility::Log_Sender;
 
@@ -113,7 +121,7 @@ public:
         std::fill( begin( column_idx ), end( column_idx ), -1 );  // initialize with sentinal value
         int table_size{ 0 };                                      // table size for single config file setup
 
-        if( file_handle.Find( table_size_id ) )
+        if( !table_size_id.empty() && file_handle.Find( table_size_id ) )
         {
             // Read n interaction pairs
             file_handle >> table_size;
