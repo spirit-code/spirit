@@ -514,7 +514,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument(
         "--table",
         dest="table",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
+        default=True,
         help="add a table parser to the generated I/O functions",
     )
     parser.add_argument(
