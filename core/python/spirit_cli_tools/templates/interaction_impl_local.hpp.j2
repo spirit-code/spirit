@@ -28,29 +28,50 @@ struct {{ name }}
     {
         Data() = default; // This constructor is required. Don't delete it!
         // TODO: Add whatever data your interaction needs to be configured
+
+        {% if demo %}
+        pairfield pairs;
+        scalarfield coefficients;
+        {% endif %}
     };
 
     static bool valid_data( const Data & data )
     {
         // NOTE: This is an optional method to validate your data whenever it gets set
+        {% if demo %}
+        return 6 * data.pairs.size() == data.coefficients.size();
+        {% else %}
         return true;
+        {% endif %}
     };
 
     struct Cache
     {
+        Cache() = default; // This constructor is required. Don't delete it!
         // NOTE: The cache is populated with data that is dependent on the Geometry
+
+        {% if demo %}
+        field<Matrix3> matrices;
+        {% endif %}
     };
 
-    static bool is_contributing( const Data &, const Cache & cache )
+    static bool is_contributing( const Data & data, const Cache & cache )
     {
         // NOTE: if the current configuration doesn't affect the Hamiltonian it will be skipped
+        {% if demo %}
+        return !data.pairs.empty();
+        {% else %}
         return true;
+        {% endif %}
     }
 
     struct Index
     {
         // TODO: The index data each site needs to calculate the local contribution.
         // It is passed as a span to the Energy, Gradient and Hessian methods defined below.
+        {% if demo %}
+        int ispin = 0, jspin = 0, ipair = 0;
+        {% endif %}
     };
 
     using IndexContainer = Engine::IndexContainer<{{ name }}>;
@@ -60,10 +81,14 @@ struct {{ name }}
     using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<{{ name }}>>;
     using Hessian  = Functor::Local::Hessian_Functor<Functor::Local::DataRef<{{ name }}>>;
 
-    static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & cache )
+    static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & cache )
     {
         // TODO: How many terms contribute to the Hessian for each cell?
+        {% if demo %}
+        return cache.matrices.size() * 9;
+        {% else %}
         return 0;
+        {% endif %}
     };
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
@@ -78,9 +103,42 @@ struct {{ name }}
         IndexContainer & container )
     {
         using Indexing::idx_from_pair;
+        {% if demo %}
+        // convert (eigen vector, eigen value) pairs to symmetrical matrices
+        cache.matrices = field<Matrix3>( data.pairs.size(), Matrix3::Zero() );
+        for( unsigned int imatrix = 0; imatrix < cache.matrices.size(); ++imatrix )
+        {
+            const scalar Kxx = data.coefficients[6 * imatrix + 0];
+            const scalar Kyy = data.coefficients[6 * imatrix + 1];
+            const scalar Kzz = data.coefficients[6 * imatrix + 2];
+            const scalar Kyz = data.coefficients[6 * imatrix + 3];
+            const scalar Kxz = data.coefficients[6 * imatrix + 4];
+            const scalar Kxy = data.coefficients[6 * imatrix + 5];
+            cache.matrices[imatrix] << Kxx, Kxy, Kxz, Kxy, Kyy, Kyz, Kxz, Kyz, Kzz;
+        }
+
+        // calculate local indices based off provided pairs
+        auto indices = std::vector( geometry.nos, field<Index>{} );
+        for( int icell = 0; icell < geometry.n_cells_total; ++icell )
+        {
+            for( int ipair = 0; ipair < data.pairs.size(); ++ipair )
+            {
+                int ispin = data.pairs[ipair].i + icell * geometry.n_cell_atoms;
+                int jspin = Indexing::idx_from_pair(
+                    ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
+                    data.pairs[ipair] );
+                if( jspin >= 0 )
+                {
+                    indices[ispin].push_back( Index{ ispin, jspin, ipair } );
+                    indices[jspin].push_back( Index{ jspin, ispin, ipair } );
+                }
+            }
+        }
+        {% else %}
         auto indices = std::vector( geometry.nos, field<Index>{} );
 
         // TODO: Define the indices that contribute to each local Hamiltonian.
+        {% endif %}
 
         container = make_index_container<{{ name }}>( std::move( indices ) );
     };
@@ -95,7 +153,7 @@ struct Functor::Local::DataRef<{{ name }}>
 
     // The constructor signature is required. You have to initialize all members you define below.
     DataRef( const Data & data, const Cache & cache ) noexcept
-            : is_contributing( Interaction::is_contributing( data, cache ) )
+            : is_contributing( Interaction::is_contributing( data, cache ) ){% if demo %}, matrices( cache.matrices.data() ){% endif %}
     {
     }
 
@@ -104,12 +162,22 @@ struct Functor::Local::DataRef<{{ name }}>
 protected:
     // TODO: This is the data the functions calculating Energy, Gradient and Hessian have access to.
     // They should all be trivial values or pointers to const data in a container of type field<T>.
-    const scalar * magnitudes;
+    {% if demo %}
+    const Matrix3 * matrices;
+    {% endif %}
 };
 
 template<>
 inline scalar {{ name }}::Energy::operator()( Span<const Index> index, quantity<const Vector3 *> state ) const
 {
+    {% if demo %}
+    scalar energy = 0.0;
+    for( const Index & idx : index )
+    {
+        energy -= state.spin[idx.ispin].dot( this->matrices[idx.ipair] * state.spin[idx.jspin] );
+    }
+    return 0.5 * energy;
+    {% else %}
     return Backend::transform_reduce(
         index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
         [this, state] SPIRIT_LAMBDA( const Index & idx ) -> scalar
@@ -117,11 +185,20 @@ inline scalar {{ name }}::Energy::operator()( Span<const Index> index, quantity<
             // TODO: Add your Energy implementation
             return 0.0;
         } );
+    {% endif %}
 }
 
 template<>
 inline Vector3 {{ name }}::Gradient::operator()( Span<const Index> index, quantity<const Vector3 *> state ) const
 {
+    {% if demo %}
+    Vector3 gradient = Vector3::Zero();
+    for( const Index & idx : index )
+    {
+        gradient -= this->matrices[idx.ipair] * state.spin[idx.jspin];
+    }
+    return gradient;
+    {% else %}
     return Backend::transform_reduce(
         index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
         [this, state] SPIRIT_LAMBDA( const Index & idx ) -> Vector3
@@ -129,18 +206,36 @@ inline Vector3 {{ name }}::Gradient::operator()( Span<const Index> index, quanti
             // TODO: Add your Gradient implementation
             return {0.0, 0.0, 0.0};
         } );
+    {% endif %}
 }
 
 template<>
 template<typename Callable>
 void {{ name }}::Hessian::operator()( Span<const Index> index, const StateType &, Callable & hessian ) const
 {
+    {% if demo %}
+    for( const Index & idx : index )
+    {
+        const int i      = 3 * idx.ispin;
+        const int j      = 3 * idx.jspin;
+        const auto ipair = idx.ipair;
+
+        for( int alpha = 0; alpha < 3; ++alpha )
+        {
+            for( int beta = 0; beta < 3; ++beta )
+            {
+                hessian( i + alpha, j + beta, -this->matrices[ipair](alpha, beta) );
+            }
+        }
+    }
+    {% else %}
     Backend::cpu::for_each(
         index.begin(), index.end(),
         [this, &hessian]( const Index & idx )
         {
             // TODO: Add your Hessian implementation
         } );
+    {% endif %}
 }
 
 } // namespace Interaction

@@ -21,6 +21,27 @@ void {{ name }}::applyGeometry(
     const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache )
 {
     // TODO: Here you can precaclulate some values that depend on the Geometry and store them in the cache
+
+    {% if demo  %}
+    // convert (eigen vector, eigen value) pairs to symmetrical matrices
+    cache.matrices = field<Matrix3>( data.pairs.size(), Matrix3::Zero() );
+    for( unsigned int imatrix = 0; imatrix < cache.matrices.size(); ++imatrix )
+    {
+        for( unsigned int alpha = 0; alpha < 3; ++alpha )
+        {
+            const scalar Kxx = data.coefficients[6 * imatrix + 0];
+            const scalar Kyy = data.coefficients[6 * imatrix + 1];
+            const scalar Kzz = data.coefficients[6 * imatrix + 2];
+            const scalar Kyz = data.coefficients[6 * imatrix + 3];
+            const scalar Kxz = data.coefficients[6 * imatrix + 4];
+            const scalar Kxy = data.coefficients[6 * imatrix + 5];
+            cache.matrices[imatrix] << Kxx, Kxy, Kxz, Kxy, Kyy, Kyz, Kxz, Kyz, Kzz;
+        }
+    }
+
+    cache.geometry            = &geometry;
+    cache.boundary_conditions = &boundary_conditions;
+    {% endif %}
 }
 
 template<>
@@ -29,6 +50,29 @@ void {{ name }}::Energy::operator()( const StateType & state, scalarfield & ener
     // TODO: Implement how to calculate the local energy for the {{ name }} interaction
     // The function object has access to references of the data and cache values.
     // Always add to the value present at each position.
+
+    {% if demo %}
+    if( !cache.geometry || !cache.boundary_conditions )
+        return;
+
+    const auto & geometry            = *cache.geometry;
+    const auto & boundary_conditions = *cache.boundary_conditions;
+    for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
+    {
+        for( unsigned int ipair = 0; ipair < data.pairs.size(); ++ipair )
+        {
+            const int ispin = data.pairs[ipair].i + icell * geometry.n_cell_atoms;
+            const int jspin = Indexing::idx_from_pair(
+                ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
+                data.pairs[ipair] );
+            if( jspin >= 0 )
+            {
+                energy[ispin] -= 0.5 * state.spin[ispin].dot( cache.matrices[ipair] * state.spin[jspin] );
+                energy[jspin] -= 0.5 * state.spin[jspin].dot( cache.matrices[ipair] * state.spin[ispin] );
+            }
+        }
+    }
+    {% endif %}
 };
 
 template<>
@@ -37,6 +81,29 @@ void {{ name }}::Gradient::operator()( const StateType & state, vectorfield & gr
     // TODO: Implement how to calculate the local gradients for the {{ name }} interaction
     // The function object has access to references of the data and cache values.
     // Always add to the value present at each position.
+
+    {% if demo %}
+    if( !cache.geometry || !cache.boundary_conditions )
+        return;
+
+    const auto & geometry            = *cache.geometry;
+    const auto & boundary_conditions = *cache.boundary_conditions;
+    for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
+    {
+        for( unsigned int ipair = 0; ipair < data.pairs.size(); ++ipair )
+        {
+            const int ispin = data.pairs[ipair].i + icell * geometry.n_cell_atoms;
+            const int jspin = Indexing::idx_from_pair(
+                ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
+                data.pairs[ipair] );
+            if( jspin >= 0 )
+            {
+                gradient[ispin] -= cache.matrices[ipair] * state.spin[jspin];
+                gradient[jspin] -= cache.matrices[ipair] * state.spin[ispin];
+            }
+        }
+    }
+    {% endif %}
 };
 
 template<>
@@ -46,9 +113,43 @@ Vector3 {{ name }}::Gradient_Local::operator()( const int ispin, const StateType
     // It should be able to calculate the local gradient more efficiently than the implementation below.
     // The function object has access to references of the data and cache values.
 
+    {% if demo %}
+    Vector3 gradient = Vector3::Zero();
+    if( !cache.geometry || !cache.boundary_conditions )
+        return gradient;
+
+    const auto & geometry            = *cache.geometry;
+    const auto & boundary_conditions = *cache.boundary_conditions;
+    const int icell                  = ispin / geometry.n_cell_atoms;
+    const int ibasis                 = ispin - icell * geometry.n_cell_atoms;
+    for( unsigned int ipair = 0; ipair < data.pairs.size(); ++ipair )
+    {
+        const auto & pair = data.pairs[ipair];
+        if( pair.i == ibasis )
+        {
+            int jspin = Indexing::idx_from_pair(
+                ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
+                pair );
+            if( jspin >= 0 )
+                gradient -= cache.matrices[ipair] * state.spin[jspin];
+        }
+        if( pair.j == ibasis )
+        {
+            const auto & t      = pair.translations;
+            const auto pair_inv = Pair{ pair.j, pair.i, { -t[0], -t[1], -t[2] } };
+            int jspin           = Indexing::idx_from_pair(
+                ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
+                pair_inv );
+            if( jspin >= 0 )
+                gradient -= cache.matrices[ipair] * state.spin[jspin];
+        }
+    }
+    return gradient;
+    {% else %}
     vectorfield gradient( state.spin.size(), Vector3::Zero() );
     std::invoke( {{ name }}::Gradient( data, cache ), state, gradient );
     return gradient[ispin];
+    {% endif %}
 };
 
 // Calculate the total energy for a single spin to be used in Monte Carlo.
@@ -60,9 +161,44 @@ scalar {{ name }}::Energy_Single_Spin::operator()( const int ispin, const StateT
     // It should be able to calculate the local gradient more efficiently than the implementation below.
     // The function object has access to references of the data and cache values.
 
+    {% if demo %}
+    scalar energy = 0.0;
+    if( !cache.geometry || !cache.boundary_conditions )
+        return energy;
+
+
+    const auto & geometry            = *cache.geometry;
+    const auto & boundary_conditions = *cache.boundary_conditions;
+    const int icell                  = ispin / geometry.n_cell_atoms;
+    const int ibasis                 = ispin - icell * geometry.n_cell_atoms;
+    for( unsigned int ipair = 0; ipair < data.pairs.size(); ++ipair )
+    {
+        const auto & pair = data.pairs[ipair];
+        if( pair.i == ibasis )
+        {
+            int jspin = Indexing::idx_from_pair(
+                ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
+                pair );
+            if( jspin >= 0 )
+                energy -= state.spin[ispin].dot( cache.matrices[ipair] * state.spin[jspin] );
+        }
+        if( pair.j == ibasis )
+        {
+            const auto & t      = pair.translations;
+            const auto pair_inv = Pair{ pair.j, pair.i, { -t[0], -t[1], -t[2] } };
+            int jspin           = Indexing::idx_from_pair(
+                ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
+                pair_inv );
+            if( jspin >= 0 )
+                energy -= state.spin[ispin].dot( cache.matrices[ipair] * state.spin[jspin] );
+        }
+    }
+    return energy;
+    {% else %}
     scalarfield energy( state.spin.size(), 0.0 );
     std::invoke( {{ name }}::Energy( data, cache ), state, energy );
     return energy[ispin];
+    {% endif %}
 };
 
 } // namespace Interaction

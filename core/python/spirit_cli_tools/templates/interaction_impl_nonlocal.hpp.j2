@@ -21,18 +21,37 @@ struct {{ name }}
 
     struct Data
     {
-        Data() = default;
+        Data() = default; // This constructor is required. Don't delete it!
+        // TODO: Add whatever data your interaction needs to be configured
+
+        {% if demo %}
+        pairfield pairs;
+        scalarfield coefficients;
+        {% endif %}
     };
 
     struct Cache
     {
+        Cache() = default; // This constructor is required. Don't delete it!
+        // NOTE: The cache is populated with data that is dependent on the Geometry
+
+        {% if demo %}
+        field<Matrix3> matrices;
+        const intfield * boundary_conditions = nullptr;
+        const ::Data::Geometry * geometry    = nullptr;
+        {% endif %}
     };
 
     using IndexContainer = Engine::IndexContainer<{{ name }}>;
 
-    static bool is_contributing( const Data & data, const Cache & )
+    static bool is_contributing( const Data & data, const Cache & cache )
     {
+        // NOTE: This is an optional method to validate your data whenever it gets set
+        {% if demo %}
+        return 6 * data.pairs.size() == data.coefficients.size();
+        {% else %}
         return true;
+        {% endif %}
     };
 
     static void applyGeometry(
@@ -45,9 +64,14 @@ struct {{ name }}
     using Energy_Single_Spin = Functor::NonLocal::Energy_Single_Spin_Functor<Functor::NonLocal::DataRef<{{ name }}>>;
     using Energy_Total       = Functor::NonLocal::Reduce_Functor<Energy>;
 
-    static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & )
+    static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & cache )
     {
+        // TODO: How many terms contribute to the Hessian for each cell?
+        {% if demo %}
+        return cache.matrices.size() * 9;
+        {% else %}
         return 0;
+        {% endif %}
     };
 
     // Interaction name as string
@@ -62,6 +86,37 @@ template<typename Callable>
 void {{ name }}::Hessian::operator()( const StateType & state, Callable & hessian ) const
 {
     // TODO: Add your Hessian implementation. Energy and Gradient are defined in a .cpp file.
+    {% if demo %}
+    if( !cache.geometry )
+        return;
+
+    const auto & geometry            = *cache.geometry;
+    const auto & boundary_conditions = *cache.boundary_conditions;
+    for( int icell = 0; icell < geometry.n_cells_total; ++icell )
+    {
+        for( unsigned int ipair = 0; ipair < data.pairs.size(); ++ipair )
+        {
+            const int ispin = data.pairs[ipair].i + icell * geometry.n_cell_atoms;
+            const int jspin = Indexing::idx_from_pair(
+                ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
+                data.pairs[ipair] );
+            if( jspin >= 0 )
+            {
+                for( int alpha = 0; alpha < 3; ++alpha )
+                {
+                    for( int beta = 0; beta < 3; ++beta )
+                    {
+                        const int i = 3 * ispin + alpha;
+                        const int j = 3 * jspin + beta;
+
+                        hessian( i, j, -cache.matrices[ipair]( alpha, beta ) );
+                        hessian( j, i, -cache.matrices[ipair]( beta, alpha ) );
+                    }
+                }
+            }
+        }
+    }
+    {% endif %}
 };
 
 } // namespace Interaction

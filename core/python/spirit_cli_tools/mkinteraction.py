@@ -549,6 +549,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         default=3,
         help="decrease verbosity",
     )
+    parser.add_argument(
+        "--demo",
+        dest="demo",
+        action="store_true",
+        help="generate demo interaction (two-site anisotropy)",
+    )
     return parser.parse_args(argv[1:])
 
 
@@ -570,10 +576,11 @@ def main(argv: list[str]) -> int:
     root: Path = Path(args.root if args.root is not None else ".")
     local: bool = args.local
     dry_run: bool = args.dry_run
+    demo: bool = args.demo
 
     fname_hpp = f"{name}.hpp"
     fname_cpp = f"{name}.cpp"
-    context = {"name": name, "full_name": full_name}
+    context = {"name": name, "full_name": full_name, "demo": demo}
 
     env = jinja2.Environment(
         trim_blocks=True,
