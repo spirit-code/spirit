@@ -11,7 +11,12 @@ from wheel.bdist_wheel import bdist_wheel as bdist_wheel_
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 NAME = "spirit"
-PACKAGES = ["spirit", "spirit.parameters", "spirit_cli_tools"]
+PACKAGES = [
+    "spirit",
+    "spirit.parameters",
+    "spirit_cli_tools",
+    "spirit_cli_tools.templates",
+]
 META_PATH = os.path.join("spirit", "__init__.py")
 KEYWORDS = ["Spirit", "Spin Dynamics"]
 CLASSIFIERS = [
@@ -133,7 +138,7 @@ if __name__ == "__main__":
         },
         package_data={
             "spirit": ["libSpirit.dylib", "libSpirit.so", "Spirit.dll"],
-            "spirit_cli_tools": ["*.j2"],
+            "spirit_cli_tools.templates": ["*.hpp.j2", "*.cpp.j2"],
         },
         cmdclass={"bdist_wheel": bdist_wheel},
     )

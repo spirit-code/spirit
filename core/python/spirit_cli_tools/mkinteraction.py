@@ -585,9 +585,7 @@ def main(argv: list[str]) -> int:
     env = jinja2.Environment(
         trim_blocks=True,
         lstrip_blocks=True,
-        loader=jinja2.FileSystemLoader(
-            os.path.join(os.path.dirname(__file__), "templates")
-        ),
+        loader=jinja2.PackageLoader("spirit_cli_tools", "templates"),
     )
 
     if local:
