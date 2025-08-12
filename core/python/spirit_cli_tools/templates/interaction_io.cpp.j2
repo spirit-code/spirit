@@ -25,7 +25,7 @@ auto {{ name }}_from_File( Filter_File_Handle & table_file, const Data::Geometry
     Log( Log_Level::Debug, Log_Sender::IO,
          fmt::format( "Reading \"{{ name }}\" table from \"{}\"", table_file.filename() ) );
 
-    {% if demo %}
+    {% if demo and make_tableparser %}
     using CustomTableParser = TableParserInit<std::array<int, 5>, std::array<scalar, 6>>;
     CustomTableParser parser( { "i", "j", "da", "db", "dc", "kijxx", "kijyy", "kijzz", "kijyz", "kijxz", "kijxy" } );
 
@@ -104,6 +104,52 @@ auto {{ name }}_from_File( Filter_File_Handle & table_file, const Data::Geometry
 
     result.pairs.shrink_to_fit();
     result.coefficients.shrink_to_fit();
+
+    return result;
+    {% elif demo %}
+    const auto headings = std::array<std::string_view, 11>{ "i", "j", "da", "db", "dc", "kijxx", "kijyy", "kijzz", "kijyz", "kijxz", "kijxy" };
+    const auto n_columns = headings.size();
+
+    auto result = Engine::Spin::Interaction::{{ name }}::Data{};
+
+    // verify headings
+    file_handle.GetLine();
+    std::string column;
+    for( std::size_t i = 0; i < n_columns; ++i )
+    {
+        // read in lower case
+        file_handle >> column;
+        std::transform( begin( column ), end( column ), begin( column ), ::tolower );
+        if( column != headings[i] )
+        {
+                Log( Log_Level::Error, Log_Sender::IO,
+                     fmt::format(
+                         "Invalid column \"{}\" at position {} in header of table file \"{}\", expected \"{}\"",
+                         column, i, file_handle.filename(), headings[i] ) );
+        }
+    }
+
+    int i = 0, j = 0, da = 0, db = 0, dc = 0;
+    scalar kxx = 0, kyy = 0, kzz = 0, kyz = 0, kxz = 0, kxy = 0;
+
+    std::unordered_set<Pair, equiv_hash<Pair>> seen_pairs;
+    while( file_handle.GetLine() )
+    {
+        file_handle >> i >> j >> da >> db >> dc >> kxx >> kyy >> kzz >> kyz >> kxz >> kxy;
+        const Pair pair{ i, j, { da, db, dc } };
+        if( !seen_pairs.insert( pair ).second  )
+            continue;
+        if( kxx == 0, kyy == 0, kzz == 0, kyz == 0, kxz == 0, kxy == 0 )
+            continue;
+
+        result.pairs.push_back( pair );
+        result.coefficients.push_back( kxx );
+        result.coefficients.push_back( kyy );
+        result.coefficients.push_back( kzz );
+        result.coefficients.push_back( kyz );
+        result.coefficients.push_back( kxz );
+        result.coefficients.push_back( kxy );
+    }
 
     return result;
     {% else %}
