@@ -18,6 +18,7 @@ Spirit - Spin Simulation Framework
     ImGui desktop user interface <docs/UI-ImGui>
     Input file specification     <core/docs/Input>
     Hamiltonian                  <core/docs/Hamiltonian>
+    Custom Interaction           <core/docs/Custom_Interaction>
     Definitions                  <core/docs/Definitions>
     Additional features          <core/docs/Features>
 
