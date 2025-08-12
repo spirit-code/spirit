@@ -32,9 +32,9 @@ RUN cd $HOME/spirit && \
     git checkout develop
 
 RUN cd $HOME/spirit && \
-    ./cmake.sh
+    cmake -B build -S .
 
 RUN cd $HOME/spirit && \
-    ./make.sh -j2
+    cmake --build build -j2
 
 CMD cd $HOME/spirit && ./spirit 

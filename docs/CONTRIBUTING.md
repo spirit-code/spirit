@@ -23,7 +23,7 @@ code style to the code you edited or to the style in the respective
 module.
 
 
-### *Branches*
+## Branches
 
 We aim to adhere to the "git flow" branching model: http://nvie.com/posts/a-successful-git-branching-model/
 
@@ -32,3 +32,30 @@ We aim to adhere to the "git flow" branching model: http://nvie.com/posts/a-succ
 Download the latest stable version from https://github.com/spirit-code/spirit/releases
 
 The develop branch contains the latest updates, but is generally less consistently tested than the releases.
+
+
+## Testing
+
+When developing for spirit you should make use of the available tests and add tests of your own for any feature that you implement.
+Tests are built and configured through `cmake` and require the `SPIRIT_BUILD_TESTS=ON` option as well as an accessible `numpy` installation.
+To run all tests use:
+
+```sh
+ctest --test-dir build --output-on-failure
+```
+
+
+## Documentation
+
+The documentation is built using [sphinx](https://www.sphinx-doc.org) which is configured through the `conf.py` file.
+The API uses `doxygen` and `apidoc` to parse documentation from the source code, while dedicated documentation is stored in `docs` and `core/docs`.
+Build requirements are listed in `docs/environment.yml` and to build the documentation run:
+
+```sh
+# building the documentation
+sphinx-build -b html . _build
+# looking at the documentation
+python -m "http.server" -d _build
+```
+
+Alternatively you use the [`sphinx-autobuild`](https://github.com/sphinx-doc/sphinx-autobuild) project.
