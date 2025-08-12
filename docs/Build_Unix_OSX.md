@@ -14,33 +14,29 @@ Core library
 
 **Requirements**
 
-- cmake >= 3.12
+- cmake >= 3.18
 - compiler with C++17 support, e.g. gcc >= 13.2
 
 **Build**
 
 CMake is used to automatically generate makefiles.
 
-```
+```sh
 # enter the top-level Spirit directory
 $ cd spirit
 
-# make a build directory and enter that
-$ mkdir build
-$ cd build
-
 # Generate makefiles
-$ cmake ..
+$ cmake -S . -B build
 
 # Build
-$ make
+$ cmake --build build
 ```
 
-Note that you can use the `-j` option of make to run the
-build in parallel.
+For running the build in parallel you can pass the `-j`
+option at the end of the build command.
 
 To manually specify the build type (default is 'Release'),
-call `cmake --build . --config Release` instead of `make`.
+call `cmake --build build --config Release` to build instead.
 
 
 Desktop GUI
@@ -53,7 +49,7 @@ CMake option is `SPIRIT_UI_CXX_USE_QT`. To build the immediate mode
 ### Additional requirements
 
 - OpenGL drivers >= 3.3
-- On Linux, the IM GUI requires `xorg-dev` and `libglu1-mesa-dev` or equivalent
+- On Linux, the IM GUI requires `xorg-dev` or `wayland-dev`, `libglu1-mesa-dev` or equivalent and `libgtk-3-dev`
 - The Qt GUI requires Qt >= 5.7 (including qt-charts)
 
 Necessary OpenGL drivers *should* be available through the regular drivers
@@ -68,7 +64,7 @@ CMake option is `SPIRIT_BUILD_FOR_PYTHON`.
 The package is then located at `core/python`. You can then
 - make it locatable, e.g. by adding `path/to/spirit/core/python` to your
 `PYTHONPATH`
-- `cd core/python` and `pip install -e . --user` to install it
+- `pip install -e 'core/python' --user` to install it
 
 Alternatively, the most recent release version can be
 installed from the [official package](https://pypi.org/project/spirit/),
@@ -89,10 +85,26 @@ compiler.
 You need to set the corresponding CMake variable, e.g.
 by calling
 
+```sh
+cmake -S . -B build -DSPIRIT_USE_OPENMP=ON
 ```
-cd build
-cmake -DSPIRIT_USE_OPENMP=ON ..
-cd ..
+
+
+STDPAR backend
+--------------------------------------
+
+C++17 offers parallelization support for STL algorithms that can be utilized in Spirit.
+This requires that the compiler and STL implementation support this feature.
+On most platforms this works out of the box when using `gcc` as the compiler.
+In rare cases you might have to install a 'Threading Building Blocks' library like `oneTBB`.
+
+**Build**
+
+You need to set the `SPIRIT_USE_STDPAR` CMake variable,
+e.g. by calling
+
+```sh
+cmake -S . -B build -DSPIRIT_USE_STDPAR=ON
 ```
 
 
@@ -103,7 +115,7 @@ The CUDA backend can be used to speed up calculations by
 using a GPU.
 
 Spirit uses [unified memory](https://devblogs.nvidia.com/unified-memory-cuda-beginners).
-At least version 8 of the CUDA toolkit is required and the
+At least version 12 of the CUDA toolkit is required and the
 GPU needs compute capability 3.0 or higher!
 
 If the GUI is used, compute capability 6.0 or higher is
@@ -125,10 +137,8 @@ precision operations on GPUs.
 You need to set the corresponding `SPIRIT_USE_CUDA` CMake
 variable, e.g. by calling
 
-```
-cd build
-cmake -DSPIRIT_USE_CUDA=ON ..
-cd ..
+```sh
+cmake -S . -B build -DSPIRIT_USE_CUDA=ON ..
 ```
 
 You may additionally need to
@@ -152,11 +162,9 @@ need to source, e.g. `source /usr/local/bin/emsdkvars.sh`.
 
 Then to build, call
 
-```
-cd build
-cmake .. -DCMAKE_TOOLCHAIN_FILE=/usr/local/emsdk/emscripten/1.38.29/cmake/Modules/Platform/Emscripten.cmake
-make
-cd ..
+```sh
+cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=/usr/local/emsdk/emscripten/1.38.29/cmake/Modules/Platform/Emscripten.cmake
+cmake --build build
 ```
 
 You will then have the mobile-capable app in the ui-web folder and the
@@ -172,8 +180,7 @@ Python library or the unit tests.
 
 To list all available build options, call
 ```
-cd build
-cmake -LH ..
+cmake -B build -S . -LH
 ```
 The build options of Spirit all start with `SPIRIT_`.
 
@@ -188,7 +195,7 @@ your system directories or to create a `.app` bundle on OSX.
 You can set the installation directory during the configuration
 stage, i.e.
 
-```
+```sh
 cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ..
 ```
 
@@ -198,11 +205,10 @@ or point it to a local folder, e.g. `-DCMAKE_INSTALL_PREFIX:PATH=./install`.
 
 If you want to create a redistributable bundle on OSX, use
 
-```
-cd build
-cmake .. -DSPIRIT_BUNDLE_APP=ON
-make
-make install
+```sh
+cmake -S . -B build -DSPIRIT_BUNDLE_APP=ON
+cmake --build build
+cmake --install build
 ```
 
 This will gather dependencies, such as Qt dlls, in a `.app` folder and
@@ -211,7 +217,7 @@ or "installed" by placing it in your "Applications" directory.
 
 You may need to update permissions,
 
-```
+```sh
 chmod -R +x build/Spirit.app
 ```
 
@@ -220,11 +226,9 @@ To make it redistributable, it is necessary to use `make install`.
 
 You can also create an installer as follows:
 
-```
-mkdir -p build && cd build
-cmake .. -DSPIRIT_BUNDLE_APP=ON
-make -j
-make package
+```sh
+cmake -S . -B build -DSPIRIT_BUNDLE_APP=ON
+cmake --build build -- package
 ```
 
 Note that one can choose the generator as `cpack -G DragNDrop`.

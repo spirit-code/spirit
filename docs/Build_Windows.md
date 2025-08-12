@@ -18,8 +18,8 @@ Core library
 
 **Requirements**
 
-- cmake >= 3.10
-- compiler with C++14 support, e.g. msvc 19.10 (VS 2017, version 15.1)
+- cmake >= 3.18
+- compiler with C++17 support, e.g. msvc 19.14
 
 **Build**
 
@@ -29,19 +29,15 @@ The version number and year may be different for you, Win64
 can be appended to any of them.  Execute `cmake -G` to get
 a listing of the available generators.
 
-```
+```sh
 # enter the top-level Spirit directory
 $ cd spirit
 
-# make a build directory and enter that
-$ mkdir build
-$ cd build
-
 # Generate a solution file
-$ cmake -G "Visual Studio 14 2015 Win64" ..
+$ cmake -S . -B build -G "Visual Studio 14 2015 Win64" ..
 
 # Either open the .sln with Visual Studio, or run
-$ cmake --build . --config Release
+$ cmake --build build --config Release
 ```
 
 You can also open the CMake GUI and configure and generate
@@ -77,7 +73,7 @@ CMake option is `SPIRIT_BUILD_FOR_PYTHON`.
 The package is then located at `core/python`. You can then
 - make it locatable, e.g. by adding `path/to/spirit/core/python` to your
 `PYTHONPATH`
-- `cd core/python` and `pip install -e . --user` to install it
+- `pip install -e "core/python" --user` to install it
 
 Alternatively, the most recent release version can be
 installed from the [official package](https://pypi.org/project/spirit/),
@@ -92,13 +88,29 @@ While you can use other compiler/implementation combinations, the
 build process tends to be nontrivial. We recommend using LLVM/clang.
 
 
+STDPAR backend
+--------------------------------------
+
+C++17 offers parallelization support for STL algorithms that can be utilized in Spirit.
+This requires that the compiler and STL implementation support this feature.
+
+**Build**
+
+You need to set the `SPIRIT_USE_STDPAR` CMake variable,
+e.g. by calling
+
+```sh
+cmake -S . -B build -DSPIRIT_USE_STDPAR=ON
+```
+
+
 CUDA backend
 --------------------------------------
 
 The CUDA backend can be used to speed up calculations by
 using a GPU.
 
-At least version 8 of the CUDA toolkit is required and the
+At least version 12 of the CUDA toolkit is required and the
 GPU needs compute capability 3.0 or higher!
 
 Note that **the GUI cannot be used on the CUDA backend on Windows**!
@@ -116,10 +128,8 @@ precision operations on GPUs.
 You need to set the corresponding `SPIRIT_USE_CUDA` CMake
 variable, e.g. by calling
 
-```
-cd build
-cmake -DSPIRIT_USE_CUDA=ON ..
-cd ..
+```sh
+cmake -S . -B build -DSPIRIT_USE_CUDA=ON ..
 ```
 
 or by setting the option in the CMake GUI and re-generating.
@@ -158,8 +168,7 @@ Python library or the unit tests.
 
 To list all available build options, call
 ```
-cd build
-cmake -LH ..
+cmake -S . -B build -LH
 ```
 The build options of Spirit all start with `SPIRIT_`.
 
