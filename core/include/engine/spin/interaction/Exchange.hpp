@@ -80,9 +80,8 @@ struct Exchange
     // Interaction name as string
     static constexpr std::string_view name = "Exchange";
 
-    static void applyGeometry(
-        const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache,
-        IndexContainer & container )
+    static void
+    applyGeometry( const ::Data::Geometry & geometry, const Data & data, Cache & cache, IndexContainer & container )
     {
         using Indexing::idx_from_pair;
         auto indices = std::vector( geometry.nos, field<Index>{} );
@@ -111,6 +110,7 @@ struct Exchange
             cache.magnitudes = data.magnitudes;
         }
 
+        const auto & boundary_conditions = geometry.boundary_conditions;
         for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
             for( unsigned int i_pair = 0; i_pair < cache.pairs.size(); ++i_pair )

@@ -42,9 +42,6 @@ save_neighbours_final   = false
 
 ################## Hamiltonian ###################
 [hamiltonian]
-### Hamiltonian Type
-### Boundary_conditions (a b c): 0(open), 1(periodical)
-boundary_conditions       = [1, 0, 0]
 
 ### External magnetic field vector[T]
 external_field = { magnitude = 0.0, normal = [0.0, 0.0, 1.0] }
@@ -93,6 +90,8 @@ basis = """
 0.5 0.2 0.7
 """
 
+### Boundary_conditions (a b c): 0(open), 1(periodical)
+boundary_conditions       = [1, 0, 0]
 
 
 ################# MC Parameters ##################

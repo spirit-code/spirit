@@ -113,9 +113,9 @@ public:
     // ---------- Constructor
     //  Build a regular lattice from a defined basis cell and translations
     Geometry(
-        const std::vector<Vector3> & bravais_vectors, intfield n_cells, const std::vector<Vector3> & cell_atoms,
-        const Basis_Cell_Composition & cell_composition, scalar lattice_constant, const Pinning & pinning,
-        const Defects & defects );
+        intfield boundary_conditions, const std::vector<Vector3> & bravais_vectors, intfield n_cells,
+        const std::vector<Vector3> & cell_atoms, const Basis_Cell_Composition & cell_composition,
+        scalar lattice_constant, const Pinning & pinning, const Defects & defects );
 
     // ---------- Convenience functions
     // Retrieve triangulation, if 2D
@@ -137,6 +137,8 @@ public:
     [[nodiscard]] Matrix3 bravaisMatrix() const noexcept;
 
     // ---------- Basic information set, which (in theory) defines everything
+    // Boundary conditions
+    intfield boundary_conditions;
     // Basis vectors {a, b, c} of the unit cell
     std::vector<Vector3> bravais_vectors;
     // Lattice Constant [Angstrom] (scales the translations)

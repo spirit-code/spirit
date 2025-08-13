@@ -888,6 +888,11 @@ auto Geometry( const std::string & config_file_name ) -> toml::table
         {
             try
             {
+                {
+                    auto boundary_conditions = Boundary_Conditions( config_file_name );
+                    tbl.insert( boundary_conditions.begin(), boundary_conditions.end() );
+                }
+
                 IO::Filter_File_Handle config_file_handle( config_file_name );
 
                 // Lattice constant
@@ -1404,7 +1409,6 @@ auto Hamiltonian( const std::string & config_file_name ) -> toml::table
     const auto extend           = []( toml::table & tbl, toml::table && ext ) { tbl.insert( ext.begin(), ext.end() ); };
 
     toml::table tbl;
-    extend( tbl, Boundary_Conditions( config_file_name ) );
     if( hamiltonian_type == "gaussian" )
     {
         extend( tbl, Interaction::Gaussian( config_file_name ) );

@@ -74,8 +74,7 @@ try
     scalar charge      = 0;
     int dimensionality = Geometry_Get_Dimensionality( state, idx_image, idx_chain );
     if( dimensionality == 2 )
-        charge = Engine::Vectormath::TopologicalCharge(
-            image->state->spin, image->hamiltonian->get_geometry(), image->hamiltonian->get_boundary_conditions() );
+        charge = Engine::Vectormath::TopologicalCharge( image->state->spin, image->hamiltonian->get_geometry() );
 
     // image->unlock();
 
@@ -104,8 +103,7 @@ try
     if( dimensionality == 2 )
     {
         Engine::Vectormath::TopologicalChargeDensity(
-            image->state->spin, image->hamiltonian->get_geometry(), image->hamiltonian->get_boundary_conditions(),
-            charge_density, triangle_indices );
+            image->state->spin, image->hamiltonian->get_geometry(), charge_density, triangle_indices );
     }
 
     if( charge_density_ptr != nullptr && triangle_indices_ptr != nullptr )

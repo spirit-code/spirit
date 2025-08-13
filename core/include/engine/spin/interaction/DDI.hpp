@@ -62,8 +62,7 @@ struct DDI
         scalarfield magnitudes{};
         vectorfield normals{};
 
-        const ::Data::Geometry * geometry    = nullptr;
-        const intfield * boundary_conditions = nullptr;
+        const ::Data::Geometry * geometry = nullptr;
 
         // Plans for FT / rFT
         FFT::FFT_Plan fft_plan_spins   = FFT::FFT_Plan();
@@ -101,8 +100,7 @@ struct DDI
         return data.method != DDI_Method::None;
     };
 
-    static void applyGeometry(
-        const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache );
+    static void applyGeometry( const ::Data::Geometry & geometry, const Data & data, Cache & cache );
 
     using Energy             = Functor::NonLocal::Energy_Functor<Functor::NonLocal::DataRef<DDI>>;
     using Gradient           = Functor::NonLocal::Gradient_Functor<Functor::NonLocal::DataRef<DDI>>;
@@ -133,7 +131,7 @@ void DDI::Hessian::operator()( const StateType & state, Callable & hessian ) con
     if( !is_contributing )
         return;
 
-    if( cache.geometry == nullptr || cache.boundary_conditions == nullptr )
+    if( cache.geometry == nullptr )
         // TODO: turn this into an error
         return;
 

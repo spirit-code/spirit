@@ -17,8 +17,7 @@ namespace Spin
 namespace Interaction
 {
 
-void {{ name }}::applyGeometry(
-    const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache )
+void {{ name }}::applyGeometry( const ::Data::Geometry & geometry, const Data & data, Cache & cache )
 {
     // TODO: Here you can precaclulate some values that depend on the Geometry and store them in the cache
 
@@ -40,7 +39,6 @@ void {{ name }}::applyGeometry(
     }
 
     cache.geometry            = &geometry;
-    cache.boundary_conditions = &boundary_conditions;
     {% endif %}
 }
 
@@ -52,11 +50,11 @@ void {{ name }}::Energy::operator()( const StateType & state, scalarfield & ener
     // Always add to the value present at each position.
 
     {% if demo %}
-    if( !cache.geometry || !cache.boundary_conditions )
+    if( !cache.geometry )
         return;
 
     const auto & geometry            = *cache.geometry;
-    const auto & boundary_conditions = *cache.boundary_conditions;
+    const auto & boundary_conditions = geometry.boundary_conditions;
     for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( unsigned int ipair = 0; ipair < data.pairs.size(); ++ipair )
@@ -83,11 +81,11 @@ void {{ name }}::Gradient::operator()( const StateType & state, vectorfield & gr
     // Always add to the value present at each position.
 
     {% if demo %}
-    if( !cache.geometry || !cache.boundary_conditions )
+    if( !cache.geometry )
         return;
 
     const auto & geometry            = *cache.geometry;
-    const auto & boundary_conditions = *cache.boundary_conditions;
+    const auto & boundary_conditions = geometry.boundary_conditions;
     for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( unsigned int ipair = 0; ipair < data.pairs.size(); ++ipair )
@@ -115,11 +113,11 @@ Vector3 {{ name }}::Gradient_Local::operator()( const int ispin, const StateType
 
     {% if demo %}
     Vector3 gradient = Vector3::Zero();
-    if( !cache.geometry || !cache.boundary_conditions )
+    if( !cache.geometry )
         return gradient;
 
     const auto & geometry            = *cache.geometry;
-    const auto & boundary_conditions = *cache.boundary_conditions;
+    const auto & boundary_conditions = geometry.boundary_conditions;
     const int icell                  = ispin / geometry.n_cell_atoms;
     const int ibasis                 = ispin - icell * geometry.n_cell_atoms;
     for( unsigned int ipair = 0; ipair < data.pairs.size(); ++ipair )
@@ -163,12 +161,11 @@ scalar {{ name }}::Energy_Single_Spin::operator()( const int ispin, const StateT
 
     {% if demo %}
     scalar energy = 0.0;
-    if( !cache.geometry || !cache.boundary_conditions )
+    if( !cache.geometry )
         return energy;
 
-
     const auto & geometry            = *cache.geometry;
-    const auto & boundary_conditions = *cache.boundary_conditions;
+    const auto & boundary_conditions = geometry.boundary_conditions;
     const int icell                  = ispin / geometry.n_cell_atoms;
     const int ibasis                 = ispin - icell * geometry.n_cell_atoms;
     for( unsigned int ipair = 0; ipair < data.pairs.size(); ++ipair )

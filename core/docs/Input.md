@@ -230,6 +230,13 @@ The basis atoms are specified in units of the Bravais vectors.
 
 The atomic moments `mu_s` are specified in units of the Bohr magneton `mu_B`.
 
+Boundary conditions are specified as a triplet of integers, each number's position corresponds to the dimension in which the boundary condition applies.
+
+```toml
+### Boundary_conditions (a b c): 0(open), 1(periodical)
+boundary_conditions       = [1, 1, 0]
+```
+
 
 ### Pinning
 
@@ -348,14 +355,6 @@ Hamiltonian
 :::{attention}
  The configuration of the interactions is documented [here](/core/docs/Hamiltonian.md).
 :::
-
-Boundary conditions are specified as a triplet of integers, each number's position corresponds to the dimension in which the boundary condition applies.
-
-```toml
-### Boundary_conditions (a b c): 0(open), 1(periodical)
-boundary_conditions       = [1, 1, 0]
-```
-
 
 ---
 

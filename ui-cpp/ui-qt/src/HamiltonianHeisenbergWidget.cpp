@@ -65,7 +65,7 @@ void HamiltonianHeisenbergWidget::Load_Contents()
 
     // Boundary conditions
     bool boundary_conditions[3];
-    Hamiltonian_Get_Boundary_Conditions( state.get(), boundary_conditions );
+    Geometry_Get_Boundary_Conditions( state.get(), boundary_conditions );
     this->checkBox_aniso_periodical_a->setChecked( boundary_conditions[0] );
     this->checkBox_aniso_periodical_b->setChecked( boundary_conditions[1] );
     this->checkBox_aniso_periodical_c->setChecked( boundary_conditions[2] );
@@ -152,7 +152,7 @@ void HamiltonianHeisenbergWidget::set_boundary_conditions()
         boundary_conditions[0] = this->checkBox_aniso_periodical_a->isChecked();
         boundary_conditions[1] = this->checkBox_aniso_periodical_b->isChecked();
         boundary_conditions[2] = this->checkBox_aniso_periodical_c->isChecked();
-        Hamiltonian_Set_Boundary_Conditions( state.get(), boundary_conditions, idx_image );
+        Geometry_Set_Boundary_Conditions( state.get(), boundary_conditions, idx_image );
     };
 
     if( this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image" )

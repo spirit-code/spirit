@@ -117,6 +117,33 @@ void Helper_State_Set_Geometry(
 
 } // namespace
 
+void Geometry_Set_Boundary_Conditions( State * state, const bool * periodical, int idx_image, int idx_chain ) noexcept
+try
+{
+    // Fetch correct indices and pointers
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
+    throw_if_nullptr( periodical, "periodical" );
+
+    image->lock();
+    try
+    {
+        image->hamiltonian->set_boundary_conditions( { periodical[0], periodical[1], periodical[2] } );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api( idx_image, idx_chain );
+    }
+    image->unlock();
+
+    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+         fmt::format( "Set boundary conditions to {} {} {}", periodical[0], periodical[1], periodical[2] ), idx_image,
+         idx_chain );
+}
+catch( ... )
+{
+    spirit_handle_exception_api( idx_image, idx_chain );
+}
+
 void Geometry_Set_Bravais_Lattice_Type( State * state, Bravais_Lattice_Type lattice_type ) noexcept
 try
 {
@@ -182,8 +209,8 @@ try
     // The new geometry
     const auto & old_geometry = state->active_image->hamiltonian->get_geometry();
     auto new_geometry         = Data::Geometry(
-        bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms, old_geometry.cell_composition,
-        old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
+        old_geometry.boundary_conditions, bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms,
+        old_geometry.cell_composition, old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
 
     // Update the State
     Helper_State_Set_Geometry( *state, old_geometry, new_geometry );
@@ -208,8 +235,8 @@ try
     // The new geometry
     const auto & old_geometry = state->active_image->hamiltonian->get_geometry();
     auto new_geometry         = Data::Geometry(
-        old_geometry.bravais_vectors, n_cells, old_geometry.cell_atoms, old_geometry.cell_composition,
-        old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
+        old_geometry.boundary_conditions, old_geometry.bravais_vectors, n_cells, old_geometry.cell_atoms,
+        old_geometry.cell_composition, old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
 
     // Update the State
     Helper_State_Set_Geometry( *state, old_geometry, new_geometry );
@@ -303,8 +330,8 @@ try
 
     // The new geometry
     auto new_geometry = Data::Geometry(
-        old_geometry.bravais_vectors, old_geometry.n_cells, cell_atoms, new_composition, old_geometry.lattice_constant,
-        old_geometry.pinning, old_geometry.defects );
+        old_geometry.boundary_conditions, old_geometry.bravais_vectors, old_geometry.n_cells, cell_atoms,
+        new_composition, old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
 
     // Update the State
     Helper_State_Set_Geometry( *state, old_geometry, new_geometry );
@@ -340,8 +367,9 @@ try
 
         // The new geometry
         auto new_geometry = Data::Geometry(
-            old_geometry.bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms, new_composition,
-            old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
+            old_geometry.boundary_conditions, old_geometry.bravais_vectors, old_geometry.n_cells,
+            old_geometry.cell_atoms, new_composition, old_geometry.lattice_constant, old_geometry.pinning,
+            old_geometry.defects );
 
         // Update the State
         Helper_State_Set_Geometry( *state, old_geometry, new_geometry );
@@ -376,8 +404,9 @@ try
 
         // The new geometry
         auto new_geometry = Data::Geometry(
-            old_geometry.bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms, new_composition,
-            old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
+            old_geometry.boundary_conditions, old_geometry.bravais_vectors, old_geometry.n_cells,
+            old_geometry.cell_atoms, new_composition, old_geometry.lattice_constant, old_geometry.pinning,
+            old_geometry.defects );
 
         // Update the State
         Helper_State_Set_Geometry( *state, old_geometry, new_geometry );
@@ -419,8 +448,8 @@ try
 
     // The new geometry
     auto new_geometry = Data::Geometry(
-        old_geometry.bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms, new_composition,
-        old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
+        old_geometry.boundary_conditions, old_geometry.bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms,
+        new_composition, old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
 
     // Update the State
     Helper_State_Set_Geometry( *state, old_geometry, new_geometry );
@@ -452,8 +481,8 @@ try
     // The new geometry
     const auto & old_geometry = state->active_image->hamiltonian->get_geometry();
     auto new_geometry         = Data::Geometry(
-        bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms, old_geometry.cell_composition,
-        old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
+        old_geometry.boundary_conditions, bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms,
+        old_geometry.cell_composition, old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
 
     // Update the State
     Helper_State_Set_Geometry( *state, old_geometry, new_geometry );
@@ -477,8 +506,8 @@ try
     // The new geometry
     const auto & old_geometry = state->active_image->hamiltonian->get_geometry();
     auto new_geometry         = Data::Geometry(
-        old_geometry.bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms, old_geometry.cell_composition,
-        lattice_constant, old_geometry.pinning, old_geometry.defects );
+        old_geometry.boundary_conditions, old_geometry.bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms,
+        old_geometry.cell_composition, lattice_constant, old_geometry.pinning, old_geometry.defects );
 
     // Update the State
     Helper_State_Set_Geometry( *state, old_geometry, new_geometry );
@@ -489,6 +518,23 @@ try
 catch( ... )
 {
     spirit_handle_exception_api( 0, 0 );
+}
+
+void Geometry_Get_Boundary_Conditions( State * state, bool * periodical, int idx_image, int idx_chain ) noexcept
+try
+{
+    // Fetch correct indices and pointers
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
+    throw_if_nullptr( periodical, "periodical" );
+
+    const auto & geometry = image->hamiltonian->get_geometry();
+    periodical[0]         = (bool)geometry.boundary_conditions[0];
+    periodical[1]         = (bool)geometry.boundary_conditions[1];
+    periodical[2]         = (bool)geometry.boundary_conditions[2];
+}
+catch( ... )
+{
+    spirit_handle_exception_api( idx_image, idx_chain );
 }
 
 int Geometry_Get_NOS( State * state ) noexcept

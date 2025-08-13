@@ -103,8 +103,8 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
     {
         const auto & sys = *this->systems[i];
         common_methods[i].Virtual_Force_Spin(
-            *sys.llg_parameters, sys.hamiltonian->get_geometry(), sys.hamiltonian->get_boundary_conditions(),
-            configurations[i]->spin, forces[i], forces_virtual[i] );
+            *sys.llg_parameters, sys.hamiltonian->get_geometry(), configurations[i]->spin, forces[i],
+            forces_virtual[i] );
     }
 }
 

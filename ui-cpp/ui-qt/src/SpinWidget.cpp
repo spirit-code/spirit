@@ -285,7 +285,7 @@ void SpinWidget::initializeGL()
     float indi_dashes_per_length = (float)indi_dashes / indi_length;
 
     bool periodical[3];
-    Hamiltonian_Get_Boundary_Conditions( this->state.get(), periodical );
+    Geometry_Get_Boundary_Conditions( this->state.get(), periodical );
     glm::vec3 indis{ indi_length * periodical[0], indi_length * periodical[1], indi_length * periodical[2] };
 
     this->m_renderer_boundingbox
@@ -2027,7 +2027,7 @@ void SpinWidget::updateBoundingBoxIndicators()
     int indi_dashes              = 5;
     float indi_dashes_per_length = (float)indi_dashes / indi_length;
 
-    Hamiltonian_Get_Boundary_Conditions( this->state.get(), periodical );
+    Geometry_Get_Boundary_Conditions( this->state.get(), periodical );
     glm::vec3 indis{ indi_length * periodical[0], indi_length * periodical[1], indi_length * periodical[2] };
 
     this->m_renderer_boundingbox

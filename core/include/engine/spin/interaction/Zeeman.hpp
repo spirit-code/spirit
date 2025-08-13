@@ -64,8 +64,8 @@ struct Zeeman
     // Interaction name as string
     static constexpr std::string_view name = "Zeeman";
 
-    static void applyGeometry(
-        const ::Data::Geometry & geometry, const intfield &, const Data &, Cache & cache, IndexContainer & container )
+    static void
+    applyGeometry( const ::Data::Geometry & geometry, const Data &, Cache & cache, IndexContainer & container )
     {
         using Indexing::check_atom_type;
         auto indices = std::vector( geometry.nos, field<Index>{} );

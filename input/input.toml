@@ -9,9 +9,6 @@ output.folder   = "output"
 
 ################## Hamiltonian ###################
 [hamiltonian]
-### Boundary_conditions (a b c): 0(open), 1(periodical)
-boundary_conditions       = [1, 1, 0]
-
 ### External magnetic field vector[T]
 external_field.magnitude  = 25.0
 external_field.direction  = [0.0, 0.0, 1.0]
@@ -61,6 +58,9 @@ bravais_lattice = "sc"
 ### Number of basis cells along principal
 ### directions (a b c)
 n_basis_cells = [100, 100, 1]
+
+### Boundary_conditions (a b c): 0(open), 1(periodical)
+boundary_conditions = [1, 1, 0]
 ################# End Geometry ###################
 
 [logging]

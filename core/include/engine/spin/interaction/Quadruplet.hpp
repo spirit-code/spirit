@@ -39,7 +39,6 @@ struct Quadruplet
     struct Cache
     {
         const ::Data::Geometry * geometry{};
-        const intfield * boundary_conditions{};
     };
 
     static bool is_contributing( const Data & data, const Cache & )
@@ -72,9 +71,8 @@ struct Quadruplet
 
     static constexpr bool local = true;
 
-    static void applyGeometry(
-        const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache,
-        IndexContainer & container )
+    static void
+    applyGeometry( const ::Data::Geometry & geometry, const Data & data, Cache & cache, IndexContainer & container )
     {
         using Indexing::idx_from_pair;
         auto indices = std::vector( geometry.nos, field<Index>{} );
@@ -92,6 +90,7 @@ struct Quadruplet
             const auto & d_k = quad.d_k;
             const auto & d_l = quad.d_l;
 
+            const auto & boundary_conditions = geometry.boundary_conditions;
             for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
             {
                 int ispin = i + icell * geometry.n_cell_atoms;
@@ -115,9 +114,8 @@ struct Quadruplet
             }
         }
 
-        container                 = make_index_container<Quadruplet>( std::move( indices ) );
-        cache.geometry            = &geometry;
-        cache.boundary_conditions = &boundary_conditions;
+        container      = make_index_container<Quadruplet>( std::move( indices ) );
+        cache.geometry = &geometry;
     };
 };
 

@@ -8,6 +8,8 @@ from typing import NamedTuple
 import numpy as np
 
 from spirit.scalar import scalar
+from spirit._compat._warnings import deprecated
+import spirit.geometry
 
 ### Load Library
 from spirit.spiritlib import _spirit
@@ -42,27 +44,22 @@ DDI_METHOD_CUTOFF = 3
 # ----------------------------------------- Set ---------------------------------------
 # -------------------------------------------------------------------------------------
 
-_Set_Boundary_Conditions = _spirit.Hamiltonian_Set_Boundary_Conditions
-_Set_Boundary_Conditions.argtypes = [
-    ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_bool),
-    ctypes.c_int,
-    ctypes.c_int,
-]
-_Set_Boundary_Conditions.restype = None
 
-
+@deprecated("Use geometry.set_boundary_conditions() instead.")
 def set_boundary_conditions(p_state, boundaries, idx_image=-1, idx_chain=-1):
-    """Set the boundary conditions along the translation directions [a, b, c].
+    """
+    .. deprecated:: 3.0.0
+       Use :func:`spirit.geometry.set_boundary_conditions` instead.
+
+    Set the boundary conditions along the translation directions [a, b, c].
 
     0 = open, 1 = periodical
     """
-    bool3 = ctypes.c_bool * 3
-    _Set_Boundary_Conditions(
-        ctypes.c_void_p(p_state),
-        bool3(*boundaries),
-        ctypes.c_int(idx_image),
-        ctypes.c_int(idx_chain),
+    return spirit.geometry.set_boundary_conditions(
+        p_state,
+        boundaries,
+        idx_image,
+        idx_chain,
     )
 
 
@@ -306,28 +303,17 @@ def get_name(p_state, idx_image=-1, idx_chain=-1):
     )
 
 
-_Get_Boundary_Conditions = _spirit.Hamiltonian_Get_Boundary_Conditions
-_Get_Boundary_Conditions.argtypes = [
-    ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_bool),
-    ctypes.c_int,
-    ctypes.c_int,
-]
-_Get_Boundary_Conditions.restype = None
-
-
+@deprecated("Use geometry.get_boundary_conditions() instead.")
 def get_boundary_conditions(p_state, idx_image=-1, idx_chain=-1):
-    """Returns an array of `shape(3)` containing the boundary conditions in the
+    """
+    .. deprecated:: 3.0.0
+       Use :func:`spirit.geometry.get_boundary_conditions` instead.
+
+    Returns an array of `shape(3)` containing the boundary conditions in the
     three translation directions `[a, b, c]` of the lattice.
     """
-    boundaries = (3 * ctypes.c_bool)()
-    _Get_Boundary_Conditions(
-        ctypes.c_void_p(p_state),
-        boundaries,
-        ctypes.c_int(idx_image),
-        ctypes.c_int(idx_chain),
-    )
-    return [bc for bc in boundaries]
+
+    return spirit.geometry.get_boundary_conditions(p_state, idx_image, idx_chain)
 
 
 _Get_Field = _spirit.Hamiltonian_Get_Field

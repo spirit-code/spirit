@@ -450,7 +450,7 @@ void Hamiltonian_to_Config(
     config += fmt::format( "{:<25} {}\n", "hamiltonian", name );
     config += []( const auto & bc ) {
         return fmt::format( "{:<25} {} {} {}\n", "boundary_conditions", bc[0], bc[1], bc[2] );
-    }( hamiltonian->get_boundary_conditions() );
+    }( hamiltonian->get_geometry().boundary_conditions );
     append_to_file( config, config_file );
 
     if( hamiltonian->Name() == "Heisenberg" )

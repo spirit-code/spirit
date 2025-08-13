@@ -88,6 +88,7 @@ set( INTERFACE_EXPORT_FUNCTIONS
     '_Constants_g_e'
     '_Constants_Pi'
     # Geometry
+    '_Geometry_Set_Boundary_Conditions'
     '_Geometry_Set_Bravais_Lattice_Type'
     '_Geometry_Set_N_Cells'
     '_Geometry_Set_Cell_Atoms'
@@ -96,6 +97,7 @@ set( INTERFACE_EXPORT_FUNCTIONS
     '_Geometry_Set_Cell_Atom_Types'
     '_Geometry_Set_Bravais_Vectors'
     '_Geometry_Set_Lattice_Constant'
+    '_Geometry_Get_Boundary_Conditions'
     '_Geometry_Get_NOS'
     '_Geometry_Get_Positions'
     '_Geometry_Get_Atom_Types'

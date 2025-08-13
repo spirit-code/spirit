@@ -292,8 +292,8 @@ Vector3 Magnetization( const vectorfield & vf, const scalarfield & mu_s )
 }
 
 void TopologicalChargeDensity(
-    const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions,
-    scalarfield & charge_density, std::vector<int> & triangle_indices )
+    const vectorfield & vf, const Data::Geometry & geometry, scalarfield & charge_density,
+    std::vector<int> & triangle_indices )
 {
     charge_density.resize( 0 );
 
@@ -364,8 +364,8 @@ void TopologicalChargeDensity(
                 std::array<Vector3, 3> tri_spins;
                 std::array<int, 3> tri_indices;
                 // bools to check wether it is allowed to take the next lattice site in direction a, b or a+b
-                bool a_next_allowed = ( a + 1 < geometry.n_cells[0] || boundary_conditions[0] );
-                bool b_next_allowed = ( b + 1 < geometry.n_cells[1] || boundary_conditions[1] );
+                bool a_next_allowed = ( a + 1 < geometry.n_cells[0] || geometry.boundary_conditions[0] );
+                bool b_next_allowed = ( b + 1 < geometry.n_cells[1] || geometry.boundary_conditions[1] );
                 bool valid_triangle = true;
                 for( int i = 0; i < 3; ++i )
                 {
@@ -412,11 +412,11 @@ void TopologicalChargeDensity(
 }
 
 // Calculate the topological charge inside a vectorfield
-scalar TopologicalCharge( const vectorfield & vf, const Data::Geometry & geom, const intfield & boundary_conditions )
+scalar TopologicalCharge( const vectorfield & vf, const Data::Geometry & geom )
 {
     scalarfield charge_density( 0 );
     std::vector<int> triangle_indices( 0 );
-    TopologicalChargeDensity( vf, geom, boundary_conditions, charge_density, triangle_indices );
+    TopologicalChargeDensity( vf, geom, charge_density, triangle_indices );
     return Vectormath::sum( charge_density );
 }
 
@@ -442,8 +442,7 @@ void get_gradient_distribution(
 }
 
 void directional_gradient(
-    const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions,
-    const Vector3 & direction, vectorfield & gradient )
+    const vectorfield & vf, const Data::Geometry & geometry, const Vector3 & direction, vectorfield & gradient )
 {
     // std::cout << "start gradient" << std::endl;
     vectorfield translations = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
@@ -510,6 +509,7 @@ void directional_gradient(
         // TODO: both loops together.
 
         // Loop over neighbours of this vector to calculate contributions of finite differences to current direction
+        const auto & boundary_conditions = geometry.boundary_conditions;
         for( unsigned int j = 0; j < neigh.size(); ++j )
         {
             if( Indexing::boundary_conditions_fulfilled(
@@ -604,12 +604,11 @@ inline int linear_idx(
     return ib + n_cell_atoms * ( a + n_cells[0] * ( b + n_cells[1] * c ) );
 }
 
-void jacobian(
-    const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions,
-    field<Matrix3> & jacobian )
+void jacobian( const vectorfield & vf, const Data::Geometry & geometry, field<Matrix3> & jacobian )
 {
-    const int _n_cells[3]             = { geometry.n_cells[0], geometry.n_cells[1], geometry.n_cells[2] };
-    const int _boundary_conditions[3] = { boundary_conditions[0], boundary_conditions[1], boundary_conditions[2] };
+    const int _n_cells[3] = { geometry.n_cells[0], geometry.n_cells[1], geometry.n_cells[2] };
+    const int _boundary_conditions[3]
+        = { geometry.boundary_conditions[0], geometry.boundary_conditions[1], geometry.boundary_conditions[2] };
 
     // 1.) Choose three linearly independent base vectors, which result from lattice translations
     // TODO: depending on the basis, the bravais vectors might not be the best choice

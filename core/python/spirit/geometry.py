@@ -42,6 +42,30 @@ BRAVAIS_LATTICE_FCC = 8
 
 ### ---------------------------------- Set ----------------------------------
 
+_Set_Boundary_Conditions = _spirit.Hamiltonian_Set_Boundary_Conditions
+_Set_Boundary_Conditions.argtypes = [
+    ctypes.c_void_p,
+    ctypes.POINTER(ctypes.c_bool),
+    ctypes.c_int,
+    ctypes.c_int,
+]
+_Set_Boundary_Conditions.restype = None
+
+
+def set_boundary_conditions(p_state, boundaries, idx_image=-1, idx_chain=-1):
+    """Set the boundary conditions along the translation directions [a, b, c].
+
+    0 = open, 1 = periodical
+    """
+    bool3 = ctypes.c_bool * 3
+    _Set_Boundary_Conditions(
+        ctypes.c_void_p(p_state),
+        bool3(*boundaries),
+        ctypes.c_int(idx_image),
+        ctypes.c_int(idx_chain),
+    )
+
+
 _Set_Bravais_Lattice_Type = _spirit.Geometry_Set_Bravais_Lattice_Type
 _Set_Bravais_Lattice_Type.argtypes = [ctypes.c_void_p, ctypes.c_int]
 _Set_Bravais_Lattice_Type.restype = None
@@ -130,6 +154,30 @@ def set_lattice_constant(p_state, lattice_constant, idx_image=-1, idx_chain=-1):
 
 
 ### ---------------------------------- Get ----------------------------------
+
+_Get_Boundary_Conditions = _spirit.Hamiltonian_Get_Boundary_Conditions
+_Get_Boundary_Conditions.argtypes = [
+    ctypes.c_void_p,
+    ctypes.POINTER(ctypes.c_bool),
+    ctypes.c_int,
+    ctypes.c_int,
+]
+_Get_Boundary_Conditions.restype = None
+
+
+def get_boundary_conditions(p_state, idx_image=-1, idx_chain=-1):
+    """Returns an array of `shape(3)` containing the boundary conditions in the
+    three translation directions `[a, b, c]` of the lattice.
+    """
+    boundaries = (3 * ctypes.c_bool)()
+    _Get_Boundary_Conditions(
+        ctypes.c_void_p(p_state),
+        boundaries,
+        ctypes.c_int(idx_image),
+        ctypes.c_int(idx_chain),
+    )
+    return [bc for bc in boundaries]
+
 
 _Get_Bounds = _spirit.Geometry_Get_Bounds
 _Get_Bounds.argtypes = [

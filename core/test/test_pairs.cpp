@@ -64,7 +64,7 @@ TEST_CASE( "neighbors", "[pairs]" )
             { 0, 0, 1.633 },
         };
         const auto composition = Data::Basis_Cell_Composition::make_default( basis.size() );
-        Data::Geometry geometry( bravais, { 5, 5, 5 }, basis, composition, 1.3, {}, {} );
+        Data::Geometry geometry( { 0, 0, 0 }, bravais, { 5, 5, 5 }, basis, composition, 1.3, {}, {} );
 
         const auto shell_radii = Engine::Neighbours::Get_Shell_Radii( geometry, 5 );
         INFO(

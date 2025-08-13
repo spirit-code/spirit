@@ -76,18 +76,18 @@ public:
     explicit Wrapper( const typename InteractionType::Data & init_data ) : Adaptor(), data( init_data ), cache() {};
 
     // applyGeometry
-    void applyGeometry( const ::Data::Geometry & geometry, const intfield & boundary_conditions )
+    void applyGeometry( const ::Data::Geometry & geometry )
     {
         if constexpr( is_local<Interaction>::value )
         {
-            Interaction::applyGeometry( geometry, boundary_conditions, data, cache, indices );
+            Interaction::applyGeometry( geometry, data, cache, indices );
             if( !Engine::verify_index_container( indices ) )
                 spirit_throw(
                     Utility::Exception_Classifier::Standard_Exception, Utility::Log_Level::Error,
                     fmt::format( "Invalid indices set on interaction: '{}'", this->Name() ) );
         }
         else
-            Interaction::applyGeometry( geometry, boundary_conditions, data, cache );
+            Interaction::applyGeometry( geometry, data, cache );
     }
 
     // is_contributing
@@ -117,13 +117,10 @@ public:
         return cache;
     }
 
-    void set_ptr_address( ::Data::Geometry * geometry, intfield * boundary_conditions )
+    void set_ptr_address( ::Data::Geometry * geometry )
     {
         if constexpr( Common::Interaction::has_geometry_member<Cache>::value )
             cache.geometry = geometry;
-
-        if constexpr( Common::Interaction::has_bc_member<Cache>::value )
-            cache.boundary_conditions = boundary_conditions;
     }
 
     scalar Energy( const state_t & state ) final

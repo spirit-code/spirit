@@ -42,11 +42,11 @@ Vector3 Magnetization( const vectorfield & vf, const scalarfield & mu_s );
 
 // Calculate the topological charge density inside a vectorfield
 void TopologicalChargeDensity(
-    const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions,
-    scalarfield & charge_density, std::vector<int> & triangle_indices );
+    const vectorfield & vf, const Data::Geometry & geometry, scalarfield & charge_density,
+    std::vector<int> & triangle_indices );
 
 // Calculate the topological charge inside a vectorfield
-scalar TopologicalCharge( const vectorfield & vf, const Data::Geometry & geom, const intfield & boundary_conditions );
+scalar TopologicalCharge( const vectorfield & vf, const Data::Geometry & geom );
 
 #ifdef SPIRIT_USE_CUDA
 __global__ void cu_get_random_vectorfield( Vector3 * xi, const size_t N );
@@ -71,13 +71,10 @@ void get_gradient_distribution(
 //      This requires to know the underlying geometry, as well as the boundary conditions.
 // NOTE: This implementation is only applicable to rectangular geometries.
 void directional_gradient(
-    const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions,
-    const Vector3 & direction, vectorfield & gradient );
+    const vectorfield & vf, const Data::Geometry & geometry, const Vector3 & direction, vectorfield & gradient );
 
 // Calculate the jacobians of a vectorfield
-void jacobian(
-    const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions,
-    field<Matrix3> & jacobian );
+void jacobian( const vectorfield & vf, const Data::Geometry & geometry, field<Matrix3> & jacobian );
 
 /////////////////////////////////////////////////////////////////
 //////// Vectormath-like operations

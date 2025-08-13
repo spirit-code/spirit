@@ -21,6 +21,35 @@ namespace detail
 namespace
 {
 
+auto Boundary_Conditions_from_TOML( const toml::table & tbl ) -> intfield
+{
+    intfield boundary_conditions{ false, false, false };
+    if( auto array = tbl["boundary_conditions"].as_array() )
+    {
+        const int array_size = static_cast<int>( array->size() );
+        if( array->size() != 3 )
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 fmt::format(
+                     "Too {} entries in boundary conditions, expected 3, found {}", array_size < 3 ? "few" : "many",
+                     array_size ) );
+
+        for( int i = 0; i < 3 && i < array_size; ++i )
+        {
+            if( auto value = ( *array )[i].as_integer() )
+                boundary_conditions[i] = static_cast<int>( *value != 0 );
+            else
+                spirit_throw(
+                    Utility::Exception_Classifier::Input_parse_failed, Log_Level::Error,
+                    "Invalid type in boundary conditions encountered." );
+        }
+    }
+    else
+        Log( Log_Level::Warning, Log_Sender::IO,
+             "No boundary conditions specified, using open boundary conditions in all "
+             "dimensions." );
+    return boundary_conditions;
+}
+
 struct BravaisConfig
 {
     std::vector<Vector3> vectors          = std::vector{ Vector3{ 1, 0, 0 }, Vector3{ 0, 1, 0 }, Vector3{ 0, 0, 1 } };
@@ -386,6 +415,8 @@ auto Geometry_from_TOML( const toml::table & root ) -> Data::Geometry
         }
     }();
 
+    const auto boundary_conditions = detail::Boundary_Conditions_from_TOML( tbl );
+
     const auto lattice_constant = [&tbl]
     {
         scalar lattice_constant = 1.0;
@@ -541,8 +572,9 @@ auto Geometry_from_TOML( const toml::table & root ) -> Data::Geometry
     parameter_log.emplace_back( fmt::format( "        nc = {}", n_cells[2] ) );
 
     // Return geometry
-    const auto geometry
-        = Data::Geometry( bravais.vectors, n_cells, cell_atoms, cell_composition, lattice_constant, pinning, defects );
+    const auto geometry = Data::Geometry(
+        boundary_conditions, bravais.vectors, n_cells, cell_atoms, cell_composition, lattice_constant, pinning,
+        defects );
 
     parameter_log.emplace_back( fmt::format( "    {} spins", geometry.nos ) );
     parameter_log.emplace_back( fmt::format( "    the geometry is {}-dimensional", geometry.dimensionality ) );

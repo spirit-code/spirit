@@ -76,8 +76,7 @@ struct Gaussian
     // Interaction name as string
     static constexpr std::string_view name = "Gaussian";
 
-    static void applyGeometry(
-        const ::Data::Geometry & geometry, const intfield &, const Data &, Cache &, IndexContainer & container )
+    static void applyGeometry( const ::Data::Geometry & geometry, const Data &, Cache &, IndexContainer & container )
     {
         auto indices = std::vector( geometry.nos, field<Index>{} );
 

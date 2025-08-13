@@ -46,6 +46,10 @@ Setters
 --------------------------------------------------------------------
 */
 
+/// Set the boundary conditions along the translation directions [a, b, c]
+PREFIX void Geometry_Set_Boundary_Conditions(
+    State * state, const bool * periodical, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
 /**
  *Set the type of Bravais lattice. Can be e.g. "sc" or "bcc".
  */
@@ -93,6 +97,9 @@ Getters
 --------------------------------------------------------------------
 */
 
+/// Retrieves the boundary conditions
+PREFIX void
+Geometry_Get_Boundary_Conditions( State * state, bool * periodical, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 /*
  * @returns the number of spins.
  */

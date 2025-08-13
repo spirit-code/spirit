@@ -264,6 +264,7 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
     SECTION( "jacobian" )
     {
         // Arbitrary bravais vectors and lattice constant
+        intfield boundary_conditions         = { 0, 0, 0 }; // Our test only works with open boundary conditions
         std::vector<Vector3> bravais_vectors = { { 1, 0.5, 0 }, { -0.2, 1, 0 }, { 0, 0, 1 } };
         scalar lattice_constant              = 1.2;
 
@@ -274,7 +275,8 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         Data::Defects defects;
 
         auto test_geometry = Data::Geometry(
-            bravais_vectors, n_cells, cell_atoms, cell_composition, lattice_constant, pinning, defects );
+            boundary_conditions, bravais_vectors, n_cells, cell_atoms, cell_composition, lattice_constant, pinning,
+            defects );
 
         auto spin_func = []( Vector3 pos ) { return pos; };
 
@@ -290,8 +292,7 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         }
 
         field<Matrix3> jacobians( test_geometry.nos );
-        intfield boundary_conditions = { 0, 0, 0 }; // Our test only works with open boundary conditions
-        Engine::Vectormath::jacobian( vftest, test_geometry, boundary_conditions, jacobians );
+        Engine::Vectormath::jacobian( vftest, test_geometry, jacobians );
 
         for( int i = 0; i < test_geometry.nos; i++ )
         {

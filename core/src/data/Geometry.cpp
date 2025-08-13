@@ -22,10 +22,11 @@ namespace Data
 {
 
 Geometry::Geometry(
-    const std::vector<Vector3> & bravais_vectors, intfield n_cells, const std::vector<Vector3> & cell_atoms,
-    const Basis_Cell_Composition & cell_composition, scalar lattice_constant, const Pinning & pinning,
-    const Defects & defects )
-        : bravais_vectors( bravais_vectors ),
+    intfield boundary_conditions, const std::vector<Vector3> & bravais_vectors, intfield n_cells,
+    const std::vector<Vector3> & cell_atoms, const Basis_Cell_Composition & cell_composition, scalar lattice_constant,
+    const Pinning & pinning, const Defects & defects )
+        : boundary_conditions( std::move( boundary_conditions ) ),
+          bravais_vectors( bravais_vectors ),
           lattice_constant( lattice_constant ),
           n_cells( n_cells ),
           n_cell_atoms( cell_atoms.size() ),

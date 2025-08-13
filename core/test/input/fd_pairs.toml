@@ -15,9 +15,6 @@ folder  = "."
 ### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
 [hamiltonian]
 
-### boundary_conditions (in a b c) = 0(open), 1(periodical)
-boundary_conditions       = [0, 0, 0]
-
 ### external magnetic field vector[T]
 external_field.magnitude  = 25.0
 external_field.direction  = [0.0, 0.0, 1.0]
@@ -78,6 +75,9 @@ n_basis_cells = [2, 2, 1]
 
 ### µSpin
 mu_s           = 2.0
+
+### boundary_conditions (in a b c) = 0(open), 1(periodical)
+boundary_conditions       = [0, 0, 0]
 ################# End Geometry ###################
 
 ################ EMA Parameters ##################

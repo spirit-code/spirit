@@ -50,6 +50,7 @@ Getters
 --------------------------------------------------------------------
 
 
+.. doxygenfunction:: Hamiltonian_Get_Boundary_Conditions
 .. doxygenfunction:: Hamiltonian_Get_Field
 .. doxygenfunction:: Hamiltonian_Get_Anisotropy
 .. doxygenfunction:: Hamiltonian_Get_Biaxial_Anisotropy_N_Atoms

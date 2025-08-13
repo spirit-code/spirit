@@ -40,24 +40,17 @@ namespace
 {
 
 void Energy_per_Spin_Direct(
-    const Geometry & geometry, const intfield & boundary_conditions, const DDI::Data & data, const vectorfield & spins,
-    scalarfield & energy );
+    const Geometry & geometry, const DDI::Data & data, const vectorfield & spins, scalarfield & energy );
 void Energy_per_Spin_Cutoff(
-    const Geometry & geometry, const intfield & boundary_conditions, const DDI::Cache & cache,
-    const vectorfield & spins, scalarfield & energy );
+    const Geometry & geometry, const DDI::Cache & cache, const vectorfield & spins, scalarfield & energy );
 void Energy_per_Spin_FFT(
-    const Geometry & geometry, const intfield & boundary_conditions, DDI::Cache & cache, const vectorfield & spins,
-    scalarfield & energy );
+    const Geometry & geometry, DDI::Cache & cache, const vectorfield & spins, scalarfield & energy );
 
 void Gradient_Direct(
-    const Geometry & geometry, const intfield & boundary_conditions, const DDI::Data & data, const vectorfield & spins,
-    vectorfield & gradient );
+    const Geometry & geometry, const DDI::Data & data, const vectorfield & spins, vectorfield & gradient );
 void Gradient_Cutoff(
-    const Geometry & geometry, const intfield & boundary_conditions, const DDI::Cache & cache,
-    const vectorfield & spins, vectorfield & gradient );
-void Gradient_FFT(
-    const Geometry & geometry, const intfield & boundary_conditions, DDI::Cache & cache, const vectorfield & spins,
-    vectorfield & gradient );
+    const Geometry & geometry, const DDI::Cache & cache, const vectorfield & spins, vectorfield & gradient );
+void Gradient_FFT( const Geometry & geometry, DDI::Cache & cache, const vectorfield & spins, vectorfield & gradient );
 
 // Calculate the FT of the padded D-matrics
 void FFT_Dipole_Matrices(
@@ -68,14 +61,12 @@ void FFT_Spins(
     const intfield & it_bounds_write_spins, FFT::FFT_Plan & fft_plan );
 
 // Preparations for DDI-Convolution Algorithm
-void Prepare_DDI(
-    const Geometry & geometry, const intfield & boundary_conditions, const DDI::Data & data, DDI::Cache & cache );
+void Prepare_DDI( const Geometry & geometry, const DDI::Data & data, DDI::Cache & cache );
 void Clean_DDI( DDI::Cache & cache );
 
 } // namespace
 
-void DDI::applyGeometry(
-    const Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache )
+void DDI::applyGeometry( const Geometry & geometry, const Data & data, Cache & cache )
 {
     if( data.method == DDI_Method::Cutoff )
         cache.pairs = Engine::Neighbours::Get_Pairs_in_Radius( geometry, data.cutoff_radius );
@@ -101,10 +92,9 @@ void DDI::applyGeometry(
             cache.magnitudes[i], cache.normals[i] );
     };
     // Dipole-dipole
-    Prepare_DDI( geometry, boundary_conditions, data, cache );
+    Prepare_DDI( geometry, data, cache );
 
-    cache.geometry            = &geometry;
-    cache.boundary_conditions = &boundary_conditions;
+    cache.geometry = &geometry;
 }
 
 template<>
@@ -113,19 +103,19 @@ void DDI::Energy::operator()( const StateType & state, scalarfield & energy ) co
     if( !is_contributing )
         return;
 
-    if( cache.geometry == nullptr || cache.boundary_conditions == nullptr )
+    if( cache.geometry == nullptr )
         // TODO: turn this into an error
         return;
 
     if( data.method == DDI_Method::FFT )
-        Energy_per_Spin_FFT( *cache.geometry, *cache.boundary_conditions, cache, state.spin, energy );
+        Energy_per_Spin_FFT( *cache.geometry, cache, state.spin, energy );
     else if( data.method == DDI_Method::Cutoff )
     {
         // TODO: Merge these implementations in the future
         if( data.cutoff_radius >= 0 )
-            Energy_per_Spin_Cutoff( *cache.geometry, *cache.boundary_conditions, cache, state.spin, energy );
+            Energy_per_Spin_Cutoff( *cache.geometry, cache, state.spin, energy );
         else
-            Energy_per_Spin_Direct( *cache.geometry, *cache.boundary_conditions, data, state.spin, energy );
+            Energy_per_Spin_Direct( *cache.geometry, data, state.spin, energy );
     }
 };
 
@@ -135,19 +125,19 @@ void DDI::Gradient::operator()( const StateType & state, vectorfield & gradient 
     if( !is_contributing )
         return;
 
-    if( cache.geometry == nullptr || cache.boundary_conditions == nullptr )
+    if( cache.geometry == nullptr )
         // TODO: turn this into an error
         return;
 
     if( data.method == DDI_Method::FFT )
-        Gradient_FFT( *cache.geometry, *cache.boundary_conditions, cache, state.spin, gradient );
+        Gradient_FFT( *cache.geometry, cache, state.spin, gradient );
     else if( data.method == DDI_Method::Cutoff )
     {
         // TODO: Merge these implementations in the future
         if( data.cutoff_radius >= 0 )
-            Gradient_Cutoff( *cache.geometry, *cache.boundary_conditions, cache, state.spin, gradient );
+            Gradient_Cutoff( *cache.geometry, cache, state.spin, gradient );
         else
-            Gradient_Direct( *cache.geometry, *cache.boundary_conditions, data, state.spin, gradient );
+            Gradient_Direct( *cache.geometry, data, state.spin, gradient );
     }
 };
 
@@ -158,21 +148,21 @@ Vector3 DDI::Gradient_Local::operator()( const int ispin, const StateType & stat
     if( !is_contributing )
         return Vector3::Zero();
 
-    if( cache.geometry == nullptr || cache.boundary_conditions == nullptr )
+    if( cache.geometry == nullptr )
         // TODO: turn this into an error
         return Vector3::Zero();
 
     // NOTE: this calculates the full gradient and then takes the local contribution (very slow!)
     vectorfield gradient( cache.geometry->nos, Vector3::Zero() );
     if( data.method == DDI_Method::FFT )
-        Gradient_FFT( *cache.geometry, *cache.boundary_conditions, cache, state.spin, gradient );
+        Gradient_FFT( *cache.geometry, cache, state.spin, gradient );
     else if( data.method == DDI_Method::Cutoff )
     {
         // TODO: Merge these implementations in the future
         if( data.cutoff_radius >= 0 )
-            Gradient_Cutoff( *cache.geometry, *cache.boundary_conditions, cache, state.spin, gradient );
+            Gradient_Cutoff( *cache.geometry, cache, state.spin, gradient );
         else
-            Gradient_Direct( *cache.geometry, *cache.boundary_conditions, data, state.spin, gradient );
+            Gradient_Direct( *cache.geometry, data, state.spin, gradient );
     }
     return gradient[ispin];
 };
@@ -193,13 +183,12 @@ namespace
 {
 
 void Energy_per_Spin_Direct(
-    const Geometry & geometry, const intfield & boundary_conditions, const DDI::Data & data, const vectorfield & spins,
-    scalarfield & energy )
+    const Geometry & geometry, const DDI::Data & data, const vectorfield & spins, scalarfield & energy )
 {
     vectorfield gradients_temp;
     gradients_temp.resize( geometry.nos );
     Vectormath::fill( gradients_temp, { 0, 0, 0 } );
-    Gradient_Direct( geometry, boundary_conditions, data, spins, gradients_temp );
+    Gradient_Direct( geometry, data, spins, gradients_temp );
 
 #pragma omp parallel for
     for( int ispin = 0; ispin < geometry.nos; ispin++ )
@@ -207,8 +196,7 @@ void Energy_per_Spin_Direct(
 }
 
 void Energy_per_Spin_Cutoff(
-    const Geometry & geometry, const intfield & boundary_conditions, const DDI::Cache & cache,
-    const vectorfield & spins, scalarfield & energy )
+    const Geometry & geometry, const DDI::Cache & cache, const vectorfield & spins, scalarfield & energy )
 {
 #ifdef SPIRIT_USE_CUDA
 // //scalar mult = -mu_B*mu_B*1.0 / 4.0 / Pi; // multiply with mu_B^2
@@ -247,6 +235,7 @@ void Energy_per_Spin_Cutoff(
     // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
     static constexpr scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4 * C::Pi * 1e-30 );
 
+    const auto & boundary_conditions = geometry.boundary_conditions;
     for( unsigned int i_pair = 0; i_pair < cache.pairs.size(); ++i_pair )
     {
         if( cache.magnitudes[i_pair] > 0.0 )
@@ -281,8 +270,7 @@ void Energy_per_Spin_Cutoff(
 }
 
 void Gradient_Cutoff(
-    const Geometry & geometry, const intfield & boundary_conditions, const DDI::Cache & cache,
-    const vectorfield & spins, vectorfield & gradient )
+    const Geometry & geometry, const DDI::Cache & cache, const vectorfield & spins, vectorfield & gradient )
 {
 #ifdef SPIRIT_USE_CUDA
 // TODO
@@ -291,6 +279,7 @@ void Gradient_Cutoff(
     // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
     static constexpr scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4 * C::Pi * 1e-30 );
 
+    const auto & boundary_conditions = geometry.boundary_conditions;
     for( unsigned int i_pair = 0; i_pair < cache.pairs.size(); ++i_pair )
     {
         if( cache.magnitudes[i_pair] > 0.0 )
@@ -337,15 +326,14 @@ __global__ void CU_E_DDI_FFT(
 #endif
 
 void Energy_per_Spin_FFT(
-    const Geometry & geometry, const intfield & boundary_conditions, DDI::Cache & cache, const vectorfield & spins,
-    scalarfield & energy )
+    const Geometry & geometry, DDI::Cache & cache, const vectorfield & spins, scalarfield & energy )
 {
 #ifdef SPIRIT_USE_CUDA
     // TODO: maybe the gradient should be cached somehow, it is quite inefficient to calculate it
     // again just for the energy
     vectorfield gradients_temp( geometry.nos );
     Vectormath::fill( gradients_temp, { 0, 0, 0 } );
-    Gradient_FFT( geometry, boundary_conditions, cache, spins, gradients_temp );
+    Gradient_FFT( geometry, cache, spins, gradients_temp );
     CU_E_DDI_FFT<<<( geometry.nos + 1023 ) / 1024, 1024>>>(
         energy.data(), spins.data(), gradients_temp.data(), geometry.nos, geometry.n_cell_atoms, geometry.mu_s.data() );
 
@@ -383,7 +371,7 @@ void Energy_per_Spin_FFT(
     vectorfield gradients_temp;
     gradients_temp.resize( geometry.nos );
     Vectormath::fill( gradients_temp, { 0, 0, 0 } );
-    Gradient_FFT( geometry, boundary_conditions, cache, spins, gradients_temp );
+    Gradient_FFT( geometry, cache, spins, gradients_temp );
 
     // TODO: add dot_scaled to Vectormath and use that
 #pragma omp parallel for
@@ -468,8 +456,7 @@ __global__ void CU_Write_FFT_Gradients(
 }
 #endif
 
-void Gradient_FFT(
-    const Geometry & geometry, const intfield &, DDI::Cache & cache, const vectorfield & spins, vectorfield & gradient )
+void Gradient_FFT( const Geometry & geometry, DDI::Cache & cache, const vectorfield & spins, vectorfield & gradient )
 {
 #ifdef SPIRIT_USE_CUDA
     auto & ft_D_matrices = cache.transformed_dipole_matrices;
@@ -598,14 +585,13 @@ void Gradient_FFT(
 }
 
 void Gradient_Direct(
-    const Geometry & geometry, const intfield & boundary_conditions, const DDI::Data & data, const vectorfield & spins,
-    vectorfield & gradient )
+    const Geometry & geometry, const DDI::Data & data, const vectorfield & spins, vectorfield & gradient )
 {
     static constexpr scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4 * C::Pi * 1e-30 );
 
-    const int img_a = boundary_conditions[0] == 0 ? 0 : data.n_periodic_images[0];
-    const int img_b = boundary_conditions[1] == 0 ? 0 : data.n_periodic_images[1];
-    const int img_c = boundary_conditions[2] == 0 ? 0 : data.n_periodic_images[2];
+    const int img_a = geometry.boundary_conditions[0] == 0 ? 0 : data.n_periodic_images[0];
+    const int img_b = geometry.boundary_conditions[1] == 0 ? 0 : data.n_periodic_images[1];
+    const int img_c = geometry.boundary_conditions[2] == 0 ? 0 : data.n_periodic_images[2];
 
     scalar d = 0, d3 = 0, d5 = 0;
     Vector3 diff;
@@ -911,8 +897,7 @@ void FFT_Dipole_Matrices(
     FFT::batch_Four_3D( fft_plan );
 }
 
-void Prepare_DDI(
-    const Geometry & geometry, const intfield & boundary_conditions, const DDI::Data & data, DDI::Cache & cache )
+void Prepare_DDI( const Geometry & geometry, const DDI::Data & data, DDI::Cache & cache )
 {
     Clean_DDI( cache );
 
@@ -925,8 +910,9 @@ void Prepare_DDI(
     cache.n_cells_padded.resize( 3 );
     for( int i = 0; i < 3; i++ )
     {
-        cache.n_cells_padded[i]   = geometry.n_cells[i];
-        bool perform_zero_padding = geometry.n_cells[i] > 1 && ( boundary_conditions[i] == 0 || data.pb_zero_padding );
+        cache.n_cells_padded[i] = geometry.n_cells[i];
+        bool perform_zero_padding
+            = geometry.n_cells[i] > 1 && ( geometry.boundary_conditions[i] == 0 || data.pb_zero_padding );
         if( perform_zero_padding )
             cache.n_cells_padded[i] *= 2;
     }
@@ -1015,9 +1001,9 @@ void Prepare_DDI(
 #endif
 
     // Perform FFT of dipole matrices
-    const int img_a = boundary_conditions[0] == 0 ? 0 : data.n_periodic_images[0];
-    const int img_b = boundary_conditions[1] == 0 ? 0 : data.n_periodic_images[1];
-    const int img_c = boundary_conditions[2] == 0 ? 0 : data.n_periodic_images[2];
+    const int img_a = geometry.boundary_conditions[0] == 0 ? 0 : data.n_periodic_images[0];
+    const int img_b = geometry.boundary_conditions[1] == 0 ? 0 : data.n_periodic_images[1];
+    const int img_c = geometry.boundary_conditions[2] == 0 ? 0 : data.n_periodic_images[2];
 
     FFT_Dipole_Matrices( geometry, cache, fft_plan_dipole, img_a, img_b, img_c );
     cache.transformed_dipole_matrices = std::move( fft_plan_dipole.cpx_ptr );

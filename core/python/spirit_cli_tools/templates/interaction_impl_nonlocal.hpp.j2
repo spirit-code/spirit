@@ -37,8 +37,7 @@ struct {{ name }}
 
         {% if demo %}
         field<Matrix3> matrices;
-        const intfield * boundary_conditions = nullptr;
-        const ::Data::Geometry * geometry    = nullptr;
+        const ::Data::Geometry * geometry = nullptr;
         {% endif %}
     };
 
@@ -54,8 +53,7 @@ struct {{ name }}
         {% endif %}
     };
 
-    static void applyGeometry(
-        const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache );
+    static void applyGeometry( const ::Data::Geometry & geometry, const Data & data, Cache & cache );
 
     using Energy             = Functor::NonLocal::Energy_Functor<Functor::NonLocal::DataRef<{{ name }}>>;
     using Gradient           = Functor::NonLocal::Gradient_Functor<Functor::NonLocal::DataRef<{{ name }}>>;
@@ -91,7 +89,7 @@ void {{ name }}::Hessian::operator()( const StateType & state, Callable & hessia
         return;
 
     const auto & geometry            = *cache.geometry;
-    const auto & boundary_conditions = *cache.boundary_conditions;
+    const auto & boundary_conditions = geometry.boundary_conditions;
     for( int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( unsigned int ipair = 0; ipair < data.pairs.size(); ++ipair )

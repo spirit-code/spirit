@@ -22,10 +22,10 @@ n_basis_cells = [1, 1, 1]
 ### µSpin
 mu_s = 2.0
 
-################## Hamiltonian ##################
-[hamiltonian]
 ### boundary_conditions (in a b c) = 0(open), 1(periodical)
 boundary_conditions = [1, 1, 0]
+################## Hamiltonian ##################
+[hamiltonian]
 
 ### external magnetic field vector[T]
 external_field = [0.0, 0.0, 1.0]

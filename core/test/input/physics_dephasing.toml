@@ -44,8 +44,6 @@ file_level    = 4
 
 ################## Hamiltonian ###################
 [hamiltonian]
-### Boundary_conditions (a b c): 0(open), 1(periodical)
-boundary_conditions       = [0, 0, 0 ]
 
 ### External magnetic field vector[T]
 external_field = { magnitude = 0.0, direction = [0.0, 0.0, 1.0] }
@@ -92,6 +90,9 @@ bravais_lattice  = "sc"
 ### Number of basis cells along principal
 ### directions (a b c)
 n_basis_cells    = [10, 10, 10]
+
+### Boundary_conditions (a b c): 0(open), 1(periodical)
+boundary_conditions       = [0, 0, 0 ]
 ################# End Geometry ###################
 
 

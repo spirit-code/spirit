@@ -1,3 +1,4 @@
+#include <Spirit/Geometry.h>
 #include <Spirit/Hamiltonian.h>
 
 #include <data/Spin_System.hpp>
@@ -28,24 +29,9 @@ void Hamiltonian_Set_Boundary_Conditions(
     State * state, const bool * periodical, int idx_image, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers
-    auto [image, chain] = from_indices( state, idx_image, idx_chain );
-    throw_if_nullptr( periodical, "periodical" );
+    Log_deprecated( API, "Use Geometry_Set_Bondary_Conditions() instead." );
 
-    image->lock();
-    try
-    {
-        image->hamiltonian->set_boundary_conditions( { periodical[0], periodical[1], periodical[2] } );
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api( idx_image, idx_chain );
-    }
-    image->unlock();
-
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-         fmt::format( "Set boundary conditions to {} {} {}", periodical[0], periodical[1], periodical[2] ), idx_image,
-         idx_chain );
+    return Geometry_Set_Boundary_Conditions( state, periodical, idx_image, idx_chain );
 }
 catch( ... )
 {
@@ -416,14 +402,9 @@ catch( ... )
 void Hamiltonian_Get_Boundary_Conditions( State * state, bool * periodical, int idx_image, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers
-    auto [image, chain] = from_indices( state, idx_image, idx_chain );
-    throw_if_nullptr( periodical, "periodical" );
+    Log_deprecated( API, "Use Geometry_Get_Boundary_Conditions() instead." );
 
-    const auto & boundary_conditions = image->hamiltonian->get_boundary_conditions();
-    periodical[0]                    = (bool)boundary_conditions[0];
-    periodical[1]                    = (bool)boundary_conditions[1];
-    periodical[2]                    = (bool)boundary_conditions[2];
+    return Geometry_Get_Boundary_Conditions( state, periodical, idx_image, idx_chain );
 }
 catch( ... )
 {

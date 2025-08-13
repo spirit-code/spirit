@@ -11,6 +11,7 @@ auto Geometry_to_TOML( const Data::Geometry & geometry ) -> toml::table
 {
     toml::table tbl;
 
+    tbl.insert( "boundary_conditions", toml_array_from_container( geometry.boundary_conditions ) );
     tbl.insert( "lattice_constant", geometry.lattice_constant );
     tbl.insert( "n_basis_cells", toml_array_from_container( geometry.n_cells ) );
     if( geometry.classifier == Data::BravaisLatticeType::SC )

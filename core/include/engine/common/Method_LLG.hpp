@@ -78,9 +78,8 @@ struct Method_LLG
     }
 
     void Virtual_Force_Spin(
-        const Data::Parameters_Method_LLG & parameters, const Data::Geometry & geometry,
-        const intfield & boundary_conditions, const vectorfield & image, const vectorfield & force,
-        vectorfield & force_virtual )
+        const Data::Parameters_Method_LLG & parameters, const Data::Geometry & geometry, const vectorfield & image,
+        const vectorfield & force, vectorfield & force_virtual )
     {
         namespace Constants = Utility::Constants;
 
@@ -130,7 +129,7 @@ struct Method_LLG
                             jacobians = field<Matrix3>( geometry.nos, Matrix3::Zero() );
 
                         // Gradient approximation for in-plane currents
-                        Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
+                        Vectormath::jacobian( image, geometry, jacobians );
 
                         // Gradient in current richtung, daher => *(-1)
                         // TODO: a_j durch b_j ersetzen

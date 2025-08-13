@@ -75,8 +75,14 @@ Setters
 --------------------------------------------------------------------
 */
 
-/// Set the boundary conditions along the translation directions [a, b, c]
-PREFIX void Hamiltonian_Set_Boundary_Conditions(
+/**
+ * @deprecated{}
+ * Use `Geometry_Set_Boundary_Conditions()` instead.
+ *
+ * Set the boundary conditions along the translation directions [a, b, c]
+ */
+DEPRECATED( "Use Geometry_Set_Boundary_Conditions() instead." )
+void Hamiltonian_Set_Boundary_Conditions(
     State * state, const bool * periodical, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /// Set the (homogeneous) external magnetic field [T]
@@ -128,9 +134,15 @@ Getters
 /// Returns a string containing the name of the Hamiltonian in use
 PREFIX const char * Hamiltonian_Get_Name( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-/// Retrieves the boundary conditions
-PREFIX void
-Hamiltonian_Get_Boundary_Conditions( State * state, bool * periodical, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+/**
+ * @deprecated{}
+ * Use `Geometry_Get_Boundary_Conditions()` instead.
+ *
+ * Retrieves the boundary conditions
+ */
+DEPRECATED( "Use Geometry_Get_Boundary_Conditions() instead." )
+void Hamiltonian_Get_Boundary_Conditions(
+    State * state, bool * periodical, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /// Retrieves the external magnetic field [T]
 PREFIX void Hamiltonian_Get_Field(

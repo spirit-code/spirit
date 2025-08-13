@@ -20,6 +20,7 @@ Definition of Bravais lattice types
 Setters
 --------------------------------------------------------------------
 
+.. doxygenfunction:: Geometry_Set_Boundary_Conditions
 .. doxygenfunction:: Geometry_Set_Bravais_Lattice_Type
 .. doxygenfunction:: Geometry_Set_N_Cells
 .. doxygenfunction:: Geometry_Set_Cell_Atoms
@@ -33,6 +34,7 @@ Setters
 Getters
 --------------------------------------------------------------------
 
+.. doxygenfunction:: Geometry_Get_Boundary_Conditions
 .. doxygenfunction:: Geometry_Get_NOS
 .. doxygenfunction:: Geometry_Get_Center
 .. doxygenfunction:: Geometry_Get_Bravais_Vectors

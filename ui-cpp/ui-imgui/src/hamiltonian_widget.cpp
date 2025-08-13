@@ -87,7 +87,7 @@ void HamiltonianWidget::show_content()
             ImGui::Indent( -15 );
             if( update_bc )
             {
-                Hamiltonian_Set_Boundary_Conditions( state.get(), boundary_conditions.data() );
+                Geometry_Set_Boundary_Conditions( state.get(), boundary_conditions.data() );
                 rendering_layer.update_boundingbox();
             }
 
@@ -493,7 +493,7 @@ void HamiltonianWidget::update_data_heisenberg()
     mu_s.resize( n_basis_atoms );
 
     // Boundary conditions
-    Hamiltonian_Get_Boundary_Conditions( state.get(), boundary_conditions.data() );
+    Geometry_Get_Boundary_Conditions( state.get(), boundary_conditions.data() );
 
     // mu_s
     Geometry_Get_mu_s( state.get(), mu_s.data() );

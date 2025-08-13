@@ -92,10 +92,10 @@ struct DMI
     // Interaction name as string
     static constexpr std::string_view name = "DMI";
 
-    static void applyGeometry(
-        const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache,
-        IndexContainer & container )
+    static void
+    applyGeometry( const ::Data::Geometry & geometry, const Data & data, Cache & cache, IndexContainer & container )
     {
+        const auto & boundary_conditions = geometry.boundary_conditions;
         using Indexing::idx_from_pair;
         auto indices = std::vector( geometry.nos, field<Index>{} );
 

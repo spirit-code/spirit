@@ -79,8 +79,8 @@ struct Anisotropy
     // Interaction name as string
     static constexpr std::string_view name = "Anisotropy";
 
-    static void applyGeometry(
-        const ::Data::Geometry & geometry, const intfield &, const Data & data, Cache &, IndexContainer & container )
+    static void
+    applyGeometry( const ::Data::Geometry & geometry, const Data & data, Cache &, IndexContainer & container )
     {
         using Indexing::check_atom_type;
         auto indices = std::vector( geometry.nos, field<Index>{} );

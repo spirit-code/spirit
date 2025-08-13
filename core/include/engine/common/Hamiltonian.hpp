@@ -39,17 +39,15 @@ public:
     using InteractionTuple = Backend::tuple<InteractionWrapper<InteractionTypes>...>;
 
     template<typename... DataTypes>
-    Hamiltonian( Data::Geometry geometry, intfield boundary_conditions, DataTypes &&... data )
+    Hamiltonian( Data::Geometry geometry, DataTypes &&... data )
             : geometry( std::make_shared<::Data::Geometry>( std::move( geometry ) ) ),
-              boundary_conditions( std::move( boundary_conditions ) ),
               interactions( InteractionWrapper<InteractionTypes>( data )... )
     {
         applyGeometry();
     };
 
-    Hamiltonian( Data::Geometry geometry, intfield boundary_conditions )
+    Hamiltonian( Data::Geometry geometry )
             : geometry( std::make_shared<::Data::Geometry>( std::move( geometry ) ) ),
-              boundary_conditions( std::move( boundary_conditions ) ),
               interactions( InteractionWrapper<InteractionTypes>()... )
     {
         applyGeometry();
@@ -59,10 +57,7 @@ public:
     // this choice should keep the interfaces a bit cleaner and allow adding more global dependencies
     // in the future.
     ~Hamiltonian() = default;
-    Hamiltonian( const Hamiltonian & other )
-            : geometry( other.geometry ),
-              boundary_conditions( other.boundary_conditions ),
-              interactions( other.interactions )
+    Hamiltonian( const Hamiltonian & other ) : geometry( other.geometry ), interactions( other.interactions )
     {
         setPtrAddress();
     };
@@ -70,17 +65,14 @@ public:
     {
         if( this != &other )
         {
-            geometry            = other.geometry;
-            boundary_conditions = other.boundary_conditions;
-            interactions        = other.interactions;
+            geometry     = other.geometry;
+            interactions = other.interactions;
             setPtrAddress();
         };
         return *this;
     };
     Hamiltonian( Hamiltonian && other ) noexcept
-            : geometry( std::move( other.geometry ) ),
-              boundary_conditions( std::move( other.boundary_conditions ) ),
-              interactions( std::move( other.interactions ) )
+            : geometry( std::move( other.geometry ) ), interactions( std::move( other.interactions ) )
     {
         setPtrAddress();
     };
@@ -88,9 +80,8 @@ public:
     {
         if( this != &other )
         {
-            geometry            = std::move( other.geometry );
-            boundary_conditions = std::move( other.boundary_conditions );
-            interactions        = std::move( other.interactions );
+            geometry     = std::move( other.geometry );
+            interactions = std::move( other.interactions );
             setPtrAddress();
         };
         return *this;
@@ -237,10 +228,8 @@ public:
     void setPtrAddress() noexcept
     {
         Backend::apply(
-            [geometry            = geometry.get(),
-             boundary_conditions = &boundary_conditions]( InteractionWrapper<InteractionTypes> &... interaction )
-            { ( ..., interaction.set_ptr_address( geometry, boundary_conditions ) ); },
-            interactions );
+            [geometry = geometry.get()]( InteractionWrapper<InteractionTypes> &... interaction )
+            { ( ..., interaction.set_ptr_address( geometry ) ); }, interactions );
     }
 
     void applyGeometry()
@@ -252,8 +241,7 @@ public:
         }
 
         Backend::apply(
-            [this]( auto &... interaction ) { ( ..., interaction.applyGeometry( *geometry, boundary_conditions ) ); },
-            interactions );
+            [this]( auto &... interaction ) { ( ..., interaction.applyGeometry( *geometry ) ); }, interactions );
     }
 
     template<typename T>
@@ -305,17 +293,6 @@ public:
             return false;
     }
 
-    [[nodiscard]] const auto & get_boundary_conditions() const
-    {
-        return boundary_conditions;
-    }
-
-    void set_boundary_conditions( const intfield & bc )
-    {
-        boundary_conditions = bc;
-        applyGeometry();
-    }
-
     [[nodiscard]] const auto & get_geometry() const
     {
         return *geometry;
@@ -331,6 +308,18 @@ public:
         set_geometry_impl( std::move( g ) );
     }
 
+    // TODO: eliminate the need for these
+    // [[nodiscard]] const auto & get_boundary_conditions() const
+    // {
+    //     return geometry->boundary_conditions;
+    // }
+    //
+    void set_boundary_conditions( const intfield & bc )
+    {
+        geometry->boundary_conditions = bc;
+        applyGeometry();
+    }
+
 private:
     template<typename InteractionType>
     void applyGeometry()
@@ -343,8 +332,7 @@ private:
             return;
         }
 
-        Backend::get<InteractionWrapper<InteractionType>>( interactions )
-            .applyGeometry( *geometry, boundary_conditions );
+        Backend::get<InteractionWrapper<InteractionType>>( interactions ).applyGeometry( *geometry );
     };
 
     template<typename Geometry>
@@ -371,7 +359,6 @@ protected:
 
 private:
     std::shared_ptr<Data::Geometry> geometry;
-    intfield boundary_conditions;
 };
 
 } // namespace Common
