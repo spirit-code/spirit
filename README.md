@@ -26,18 +26,14 @@ If you intend to *present and/or publish* scientific results or visualisations f
 please cite both the spirit paper [`G. P. Müller et al., Phys. Rev. B 99, 224414 (2019)`](https://link.aps.org/doi/10.1103/PhysRevB.99.224414) and the (version-independent) Zenodo entry [`DOI: 10.5281/zenodo.7746551`](https://doi.org/10.5281/zenodo.7746551). For details, please refer to the [docs/REFERENCE.md](docs/REFERENCE.md).
 
 **This is an open project and contributions and collaborations are always welcome!!**
-See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) on how to contribute or write an email to moritz.sallermann@rwth-aachen.de or t.puerling@fz-juelich.de<br />
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) on how to contribute or write an email to <moritz.sallermann@rwth-aachen.de> or <t.puerling@fz-juelich.de><br />
 For contributions and affiliations, see [docs/CONTRIBUTORS.md](docs/CONTRIBUTORS.md).
 
 Please note that a version of the *Spirit Web interface* is hosted by the Research Centre Jülich at
-https://juspin.de
+<https://juspin.de>
 
 
 &nbsp;
-
-<!--
-![nur ein Beispiel](https://commons.wikimedia.org/wiki/File:Example_de.jpg "Beispielbild")
--->
 
 ![Skyrmions](http://imgur.com/JgPj8t5.jpg "Skyrmions on a 2D grid")
 
