@@ -253,6 +253,46 @@ If the `Jij` or `Dij` keywords used for shells are present the associated column
 ::::
 
 
+## Two-Site Anisotropy
+
+![Two-Site Anisotropy](https://math.vercel.app/?bgcolor=auto&from=%5Cmathcal%7BH%7D_%7BA%5E2%7D%5B%5Cvec%7Bn%7D%5D%20%3D%20-%5Csum_%7B%5Cbraket%7Bij%7D%7D%20%5Cvec%7Bn%7D_i%20%5Ccdot%20K_%7Bij%7D%20%5Cvec%7Bn%7D_i.svg)
+
+<!-- \mathcal{H}_{A^2}[\vec{n}] = -\sum_{\braket{ij}} \vec{n}_i \cdot K_{ij} \vec{n}_i -->
+
+
+The Two-Site Anisotropy interaction covers the symmetric, traceless part of the two-site interaction tensor.
+It is specified in terms of the symmetry reduced Cartesian coordinates in a [table](/core/docs/Input.md#tables).
+If one of the diagonal entries is omitted it will be computed from the other two to ensure that the trace of the tensor vanishes.
+
+:::{warning}
+This interaction can overlap with the [Heisenberg exchange](#heisenberg-exchange), if $K_{ij}^{xx} + K_{ij}^{yy} + K_{ij}^{zz} \neq 0$.
+:::
+
+::::{tab-set}
+
+:::{tab-item} TOML
+```toml
+### Two Site Anisotropy in meV per pair
+two_site_anisotropy = """
+i j   da db dc   Kijxx  Kijyy  Kijzz  Kijyz  Kijxz  Kijxy
+0 0    1  0  0    -1.0    0.5    0.5    0.0    0.0    0.0
+0 0    0  1  0     0.5   -1.0    0.5    0.0    0.0    0.0
+0 0    0  0  1     0.5    0.5   -1.0    0.0    0.0    0.0
+"""
+```
+:::
+
+:::{tab-item} Python
+Not yet implemented
+:::
+
+:::{tab-item} C
+Not yet implemented
+:::
+
+::::
+
+
 
 ## Dipole-Dipole Interaction
 

@@ -9,6 +9,7 @@ set(SOURCE_SPIRIT_IO_HAMILTONIAN
     ${CMAKE_CURRENT_SOURCE_DIR}/DDI.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
+    ${CMAKE_CURRENT_SOURCE_DIR}/Two_Site_Anisotropy.cpp
     PARENT_SCOPE
 )
 
@@ -24,6 +25,7 @@ if( SPIRIT_USE_CUDA )
         ${CMAKE_CURRENT_LIST_DIR}/Quadruplet.cpp
         ${CMAKE_CURRENT_LIST_DIR}/DDI.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Hamiltonian.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Two_Site_Anisotropy.cpp
         PARENT_SCOPE
     )
 endif()

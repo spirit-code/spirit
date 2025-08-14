@@ -54,4 +54,9 @@ auto DDI_from_TOML( const toml::table & tbl, const Data::Geometry & geometry, st
     -> Engine::Spin::Interaction::DDI::Data;
 auto DDI_to_TOML( const Engine::Spin::Interaction::DDI::Data * data ) -> toml::table;
 
+auto Two_Site_Anisotropy_from_TOML(
+    const toml::table & tbl, const Data::Geometry & geometry,
+    std::vector<std::string> & parameter_log ) -> Engine::Spin::Interaction::Two_Site_Anisotropy::Data;
+auto Two_Site_Anisotropy_to_TOML( const Engine::Spin::Interaction::Two_Site_Anisotropy::Data * data ) -> toml::table;
+
 } // namespace IO

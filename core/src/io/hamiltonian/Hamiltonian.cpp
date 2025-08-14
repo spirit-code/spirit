@@ -38,6 +38,7 @@ auto Hamiltonian_from_TOML( const toml::table & root, Data::Geometry geometry )
     auto [exchange, dmi]           = Pair_Interactions_from_TOML( tbl, geometry, parameter_log );
     auto ddi                       = DDI_from_TOML( tbl, geometry, parameter_log );
     auto quadruplets               = Quadruplets_from_TOML( tbl, geometry, parameter_log );
+    auto two_site_anisotropy       = Two_Site_Anisotropy_from_TOML( tbl, geometry, parameter_log );
     auto gaussian                  = Gaussian_from_TOML( tbl, parameter_log );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Building Hamiltonian" );
@@ -51,6 +52,7 @@ auto Hamiltonian_from_TOML( const toml::table & root, Data::Geometry geometry )
     log_error( hamiltonian->set_data<Interaction::DMI>( std::move( dmi ) ) );
     log_error( hamiltonian->set_data<Interaction::DDI>( std::move( ddi ) ) );
     log_error( hamiltonian->set_data<Interaction::Quadruplet>( std::move( quadruplets ) ) );
+    log_error( hamiltonian->set_data<Interaction::Two_Site_Anisotropy>( std::move( two_site_anisotropy ) ) );
     log_error( hamiltonian->set_data<Interaction::Gaussian>( std::move( gaussian ) ) );
 
     Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Hamiltonian built: \"{}\"", hamiltonian->Name() ) );
@@ -72,6 +74,7 @@ auto Hamiltonian_to_TOML( const Engine::Spin::Hamiltonian & hamiltonian ) -> tom
         hamiltonian.cache<Interaction::Exchange>(), hamiltonian.cache<Interaction::DMI>() ) );
     insert( Quadruplets_to_TOML( hamiltonian.data<Interaction::Quadruplet>() ) );
     insert( Gaussian_to_TOML( hamiltonian.data<Interaction::Gaussian>() ) );
+    insert( Two_Site_Anisotropy_to_TOML( hamiltonian.data<Interaction::Two_Site_Anisotropy>() ) );
     insert( DDI_to_TOML( hamiltonian.data<Interaction::DDI>() ) );
     return tbl;
 }

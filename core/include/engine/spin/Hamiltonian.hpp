@@ -13,6 +13,7 @@
 #include <engine/spin/interaction/Exchange.hpp>
 #include <engine/spin/interaction/Gaussian.hpp>
 #include <engine/spin/interaction/Quadruplet.hpp>
+#include <engine/spin/interaction/Two_Site_Anisotropy.hpp>
 #include <engine/spin/interaction/Zeeman.hpp>
 #include <utility/Variadic_Traits.hpp>
 
@@ -36,6 +37,7 @@ using HamiltonianBase = Common::Hamiltonian<
     Interaction::DMI,
     Interaction::Quadruplet,
     Interaction::DDI,
+    Interaction::Two_Site_Anisotropy,
     Interaction::Gaussian>;
 // clang-format on
 
