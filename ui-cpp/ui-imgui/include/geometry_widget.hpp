@@ -23,6 +23,9 @@ struct GeometryWidget : public WidgetBase
 
     int n_cells[3]{ 1, 1, 1 };
     int n_basis_atoms = 1;
+
+    std::array<bool, 3> boundary_conditions{};
+
     scalar bravais_vector_a[3]{ 0, 0, 0 };
     scalar bravais_vector_b[3]{ 0, 0, 0 };
     scalar bravais_vector_c[3]{ 0, 0, 0 };
