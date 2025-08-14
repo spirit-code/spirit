@@ -27,6 +27,7 @@ signals:
 
 private slots:
     void setNCells();
+    void set_boundary_conditions();
 
 private:
     void Setup_Input_Validators();

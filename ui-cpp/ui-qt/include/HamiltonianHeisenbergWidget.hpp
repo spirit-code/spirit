@@ -30,7 +30,6 @@ public:
     void updateData();
 
 private slots:
-    void set_boundary_conditions();
     void set_mu_s();
     void set_external_field();
     void set_anisotropy();
