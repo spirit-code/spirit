@@ -83,15 +83,15 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="page_3">
           <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>533</width>
-            <height>684</height>
+            <width>483</width>
+            <height>662</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -426,6 +426,27 @@
               </item>
               <item row="5" column="1">
                <layout class="QGridLayout" name="gridLayout_65">
+                <item row="0" column="3">
+                 <layout class="QGridLayout" name="gridLayout_16">
+                  <item row="0" column="0">
+                   <widget class="QComboBox" name="comboBox_spin_current_model">
+                    <property name="editable">
+                     <bool>false</bool>
+                    </property>
+                    <item>
+                     <property name="text">
+                      <string>Monolayer</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Gradient</string>
+                     </property>
+                    </item>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
                 <item row="0" column="1">
                  <widget class="QDoubleSpinBox" name="doubleSpinBox_llg_stt_magnitude">
                   <property name="decimals">
@@ -439,42 +460,21 @@
                   </property>
                  </widget>
                 </item>
-                <item row="0" column="3">
+                <item row="0" column="2">
                  <spacer name="horizontalSpacer_46">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Fixed</enum>
+                  </property>
                   <property name="sizeHint" stdset="0">
                    <size>
-                    <width>40</width>
+                    <width>20</width>
                     <height>20</height>
                    </size>
                   </property>
                  </spacer>
-                </item>
-                <item row="0" column="2">
-                 <layout class="QGridLayout" name="gridLayout_16">
-                  <item row="0" column="0">
-                   <widget class="QRadioButton" name="radioButton_stt_gradient">
-                    <property name="text">
-                     <string>Gradient method</string>
-                    </property>
-                    <property name="checked">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="1" column="0">
-                   <widget class="QRadioButton" name="radioButton_stt_monolayer">
-                    <property name="text">
-                     <string>Monolayer approximation</string>
-                    </property>
-                    <property name="checked">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
                 </item>
                </layout>
               </item>
@@ -842,7 +842,7 @@
             <x>0</x>
             <y>0</y>
             <width>483</width>
-            <height>652</height>
+            <height>662</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1194,7 +1194,7 @@
             <x>0</x>
             <y>0</y>
             <width>469</width>
-            <height>848</height>
+            <height>800</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -1813,7 +1813,7 @@
             <x>0</x>
             <y>0</y>
             <width>483</width>
-            <height>652</height>
+            <height>662</height>
            </rect>
           </property>
           <attribute name="label">
@@ -2128,7 +2128,7 @@
             <x>0</x>
             <y>0</y>
             <width>483</width>
-            <height>652</height>
+            <height>662</height>
            </rect>
           </property>
           <attribute name="label">
@@ -2536,7 +2536,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>

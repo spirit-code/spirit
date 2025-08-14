@@ -13,18 +13,26 @@
 #include <Spirit/Simulation.h>
 #include <Spirit/System.h>
 
-// Small function for normalization of vectors
-#define Exception_Division_by_zero 6666
 template<typename T>
-void normalize( T v[3] )
+bool normalize( T & vec )
 {
-    T len = 0.0;
-    for( int i = 0; i < 3; ++i )
-        len += std::pow( v[i], 2 );
-    if( len == 0.0 )
-        throw Exception_Division_by_zero;
-    for( int i = 0; i < 3; ++i )
-        v[i] /= std::sqrt( len );
+    scalar norm{ 0.0 };
+    for( const auto & elem : vec )
+    {
+        norm += elem;
+    }
+    if( norm < std::numeric_limits<scalar>::epsilon() )
+    {
+        return false;
+    }
+
+    norm = std::sqrt( norm );
+    for( auto & elem : vec )
+    {
+        elem /= norm;
+    }
+
+    return true;
 }
 
 ParametersWidget::ParametersWidget( std::shared_ptr<State> state )
@@ -79,15 +87,21 @@ void ParametersWidget::Load_Parameters_Contents()
     // Converto to PicoSeconds
     d = Parameters_LLG_Get_Time_Step( state.get() );
     this->lineEdit_dt->setText( QString::number( d ) );
+
     // Spin polarized current
-    Parameters_LLG_Get_STT( state.get(), &b1, &d, vd );
-    this->radioButton_stt_gradient->setChecked( b1 );
-    this->doubleSpinBox_llg_stt_magnitude->setValue( d );
-    this->doubleSpinBox_llg_stt_polarisation_x->setValue( vd[0] );
-    this->doubleSpinBox_llg_stt_polarisation_y->setValue( vd[1] );
-    this->doubleSpinBox_llg_stt_polarisation_z->setValue( vd[2] );
-    if( d > 0.0 )
+    int spin_current_model{};
+    scalar spin_current_magnitude{};
+    std::array<double, 3> spin_current_direction{};
+    Parameters_LLG_Get_Spin_Current(
+        state.get(), &spin_current_model, &spin_current_magnitude, spin_current_direction.data() );
+    this->comboBox_spin_current_model->setCurrentIndex( spin_current_model );
+    this->doubleSpinBox_llg_stt_magnitude->setValue( spin_current_magnitude );
+    this->doubleSpinBox_llg_stt_polarisation_x->setValue( spin_current_direction[0] );
+    this->doubleSpinBox_llg_stt_polarisation_y->setValue( spin_current_direction[1] );
+    this->doubleSpinBox_llg_stt_polarisation_z->setValue( spin_current_direction[2] );
+    if( spin_current_magnitude > 0.0 )
         this->checkBox_llg_stt->setChecked( true );
+
     // Temperature
     d = Parameters_LLG_Get_Temperature( state.get() );
     this->doubleSpinBox_llg_temperature->setValue( d );
@@ -268,36 +282,23 @@ void ParametersWidget::set_parameters_llg()
         Parameters_LLG_Set_Damping( this->state.get(), d, idx_image );
 
         // Spin polarised current
-        b1 = this->radioButton_stt_gradient->isChecked();
-        if( this->checkBox_llg_stt->isChecked() )
-            d = this->doubleSpinBox_llg_stt_magnitude->value();
-        else
-            d = 0.0;
-        vd[0] = doubleSpinBox_llg_stt_polarisation_x->value();
-        vd[1] = doubleSpinBox_llg_stt_polarisation_y->value();
-        vd[2] = doubleSpinBox_llg_stt_polarisation_z->value();
-        try
+        const int spin_current_model = this->comboBox_spin_current_model->currentIndex();
+        const scalar spin_current_magnitude
+            = this->checkBox_llg_stt->isChecked() ? this->doubleSpinBox_llg_stt_magnitude->value() : 0.0;
+
+        std::array<double, 3> spin_current_direction{ doubleSpinBox_llg_stt_polarisation_x->value(),
+                                                      doubleSpinBox_llg_stt_polarisation_y->value(),
+                                                      doubleSpinBox_llg_stt_polarisation_z->value() };
+
+        bool success = normalize( spin_current_direction );
+        if( !success )
         {
-            normalize( vd );
+            spin_current_direction = { 0.0, 0.0, 1.0 };
+            Log_Send( state.get(), Log_Level_Warning, Log_Sender_UI, "s_c_vec = {0,0,0} replaced by {0,0,1}" );
         }
-        catch( int ex )
-        {
-            if( ex == Exception_Division_by_zero )
-            {
-                vd[0] = 0.0;
-                vd[1] = 0.0;
-                vd[2] = 1.0;
-                Log_Send( state.get(), Log_Level_Warning, Log_Sender_UI, "s_c_vec = {0,0,0} replaced by {0,0,1}" );
-                doubleSpinBox_llg_stt_polarisation_x->setValue( 0.0 );
-                doubleSpinBox_llg_stt_polarisation_y->setValue( 0.0 );
-                doubleSpinBox_llg_stt_polarisation_z->setValue( 1.0 );
-            }
-            else
-            {
-                throw( ex );
-            }
-        }
-        Parameters_LLG_Set_STT( state.get(), b1, d, vd, idx_image );
+
+        Parameters_LLG_Set_Spin_Current(
+            state.get(), spin_current_model, spin_current_magnitude, spin_current_direction.data() );
 
         // Temperature
         if( this->checkBox_llg_temperature->isChecked() )
@@ -627,8 +628,9 @@ void ParametersWidget::Setup_Parameters_Slots()
     connect( this->lineEdit_llg_temperature_dir_y, SIGNAL( editingFinished() ), this, SLOT( set_parameters_llg() ) );
     connect( this->lineEdit_llg_temperature_dir_z, SIGNAL( editingFinished() ), this, SLOT( set_parameters_llg() ) );
     // STT
-    connect( this->radioButton_stt_gradient, SIGNAL( clicked() ), this, SLOT( set_parameters_llg() ) );
-    connect( this->radioButton_stt_monolayer, SIGNAL( clicked() ), this, SLOT( set_parameters_llg() ) );
+    connect(
+        this->comboBox_spin_current_model, SIGNAL( currentIndexChanged( int ) ), this, SLOT( set_parameters_llg() ) );
+
     connect( this->checkBox_llg_stt, SIGNAL( stateChanged( int ) ), this, SLOT( set_parameters_llg() ) );
     connect( this->doubleSpinBox_llg_stt_magnitude, SIGNAL( editingFinished() ), this, SLOT( set_parameters_llg() ) );
     connect(
