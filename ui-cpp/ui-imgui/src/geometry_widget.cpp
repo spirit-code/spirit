@@ -1,6 +1,7 @@
 #include <geometry_widget.hpp>
 #include <widgets.hpp>
 
+#include <Spirit/Chain.h>
 #include <Spirit/Geometry.h>
 
 #include <imgui/imgui.h>
@@ -19,6 +20,8 @@ GeometryWidget::GeometryWidget( bool & show, std::shared_ptr<State> state, Rende
 
 void GeometryWidget::update_data()
 {
+    Geometry_Get_Boundary_Conditions( state.get(), boundary_conditions.data() );
+
     system_dimensionality = Geometry_Get_Dimensionality( state.get() );
     Geometry_Get_N_Cells( state.get(), n_cells );
     Geometry_Get_Center( this->state.get(), system_center );
@@ -31,6 +34,35 @@ void GeometryWidget::update_data()
 
 void GeometryWidget::show_content()
 {
+    ImGui::Indent( 15 );
+    ImGui::TextUnformatted( "Periodical boundary conditions" );
+    ImGui::Indent( 15 );
+    ImGui::TextUnformatted( "(a, b, c)" );
+    ImGui::SameLine();
+    bool update_bc = false;
+    if( ImGui::Checkbox( "##periodical_a", &boundary_conditions[0] ) )
+        update_bc = true;
+    ImGui::SameLine();
+    if( ImGui::Checkbox( "##periodical_b", &boundary_conditions[1] ) )
+        update_bc = true;
+    ImGui::SameLine();
+    if( ImGui::Checkbox( "##periodical_c", &boundary_conditions[2] ) )
+        update_bc = true;
+    ImGui::Indent( -30 );
+    if( update_bc )
+    {
+        // The Hamiltonians, for each image in the chain, have a shared pointer to the geometry.
+        // So technically we only have to update the geometry object for one image.
+        // *But* updating the boundary conditions involves some bookkeeping in the
+        // hamiltonian interactions and therefore we call `Geometry_Set_Boundary_Conditions` for each image in the
+        // chain. This way we can be sure that the necessary bookkeeping is performed for all hamiltonians
+        for( int idx_image = 0; idx_image < Chain_Get_NOI( state.get() ); idx_image++ )
+        {
+            Geometry_Set_Boundary_Conditions( state.get(), boundary_conditions.data(), idx_image );
+        }
+        rendering_layer.update_boundingbox();
+    }
+
     static std::vector<std::string> bravais_lattice_types{
         "Irregular", "Rectilinear", "Simple cubic", "Hexagonal (2D)", "Hexagonal (2D, 60deg)", "Hexagonal (2D, 120deg)",
         "HCP",       "BCC",         "FCC",

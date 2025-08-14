@@ -24,8 +24,6 @@ struct HamiltonianWidget : public WidgetBase
     std::shared_ptr<State> state;
     RenderingLayer & rendering_layer;
 
-    std::array<bool, 3> boundary_conditions;
-
     std::vector<scalar> mu_s;
 
     bool external_field_active;

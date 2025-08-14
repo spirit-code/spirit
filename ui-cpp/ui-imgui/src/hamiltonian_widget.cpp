@@ -69,30 +69,6 @@ void HamiltonianWidget::show_content()
 
         if( hamiltonian_type == "Heisenberg" )
         {
-            ImGui::Indent( 15 );
-            ImGui::TextUnformatted( "Periodical boundary conditions" );
-            ImGui::Indent( 15 );
-            ImGui::TextUnformatted( "(a, b, c)" );
-            ImGui::SameLine();
-            bool update_bc = false;
-            if( ImGui::Checkbox( "##periodical_a", &boundary_conditions[0] ) )
-                update_bc = true;
-            ImGui::SameLine();
-            if( ImGui::Checkbox( "##periodical_b", &boundary_conditions[1] ) )
-                update_bc = true;
-            ImGui::SameLine();
-            if( ImGui::Checkbox( "##periodical_c", &boundary_conditions[2] ) )
-                update_bc = true;
-            ImGui::Indent( -15 );
-            ImGui::Indent( -15 );
-            if( update_bc )
-            {
-                Geometry_Set_Boundary_Conditions( state.get(), boundary_conditions.data() );
-                rendering_layer.update_boundingbox();
-            }
-
-            ImGui::Dummy( { 0, 10 } );
-
             ImGui::TextUnformatted( "Spin moment mu_s [mu_B]" );
             ImGui::Indent( 15 );
             ImGui::SetNextItemWidth( 80 );
@@ -491,9 +467,6 @@ void HamiltonianWidget::update_data_heisenberg()
 {
     int n_basis_atoms = Geometry_Get_N_Cell_Atoms( state.get() );
     mu_s.resize( n_basis_atoms );
-
-    // Boundary conditions
-    Geometry_Get_Boundary_Conditions( state.get(), boundary_conditions.data() );
 
     // mu_s
     Geometry_Get_mu_s( state.get(), mu_s.data() );
