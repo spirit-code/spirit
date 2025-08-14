@@ -120,6 +120,8 @@ void Helper_State_Set_Geometry(
 void Geometry_Set_Boundary_Conditions( State * state, const bool * periodical, int idx_image, int idx_chain ) noexcept
 try
 {
+    check_state( state );
+
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( periodical, "periodical" );

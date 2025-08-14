@@ -63,13 +63,6 @@ void HamiltonianHeisenbergWidget::Load_Contents()
     int n_basis_atoms = Geometry_Get_N_Cell_Atoms( state.get() );
     std::vector<scalar> mu_s( n_basis_atoms );
 
-    // Boundary conditions
-    bool boundary_conditions[3];
-    Geometry_Get_Boundary_Conditions( state.get(), boundary_conditions );
-    this->checkBox_aniso_periodical_a->setChecked( boundary_conditions[0] );
-    this->checkBox_aniso_periodical_b->setChecked( boundary_conditions[1] );
-    this->checkBox_aniso_periodical_c->setChecked( boundary_conditions[2] );
-
     // mu_s
     Geometry_Get_mu_s( state.get(), mu_s.data() );
     this->lineEdit_muSpin_aniso->setText( QString::number( mu_s[0] ) );
@@ -141,40 +134,6 @@ void HamiltonianHeisenbergWidget::Load_Contents()
 // -----------------------------------------------------------------------------------
 // -------------------------- Setters ------------------------------------------------
 // -----------------------------------------------------------------------------------
-
-void HamiltonianHeisenbergWidget::set_boundary_conditions()
-{
-    // Closure to set the parameters of a specific spin system
-    auto apply = [this]( int idx_image ) -> void
-    {
-        // Boundary conditions
-        bool boundary_conditions[3];
-        boundary_conditions[0] = this->checkBox_aniso_periodical_a->isChecked();
-        boundary_conditions[1] = this->checkBox_aniso_periodical_b->isChecked();
-        boundary_conditions[2] = this->checkBox_aniso_periodical_c->isChecked();
-        Geometry_Set_Boundary_Conditions( state.get(), boundary_conditions, idx_image );
-    };
-
-    if( this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image" )
-    {
-        apply( System_Get_Index( state.get() ) );
-    }
-    else if( this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain" )
-    {
-        for( int i = 0; i < Chain_Get_NOI( state.get() ); ++i )
-        {
-            apply( i );
-        }
-    }
-    else if( this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images" )
-    {
-        for( int img = 0; img < Chain_Get_NOI( state.get() ); ++img )
-        {
-            apply( img );
-        }
-    }
-    this->spinWidget->updateBoundingBoxIndicators();
-}
 
 void HamiltonianHeisenbergWidget::set_mu_s()
 {
@@ -549,13 +508,6 @@ void HamiltonianHeisenbergWidget::Setup_Input_Validators()
 
 void HamiltonianHeisenbergWidget::Setup_Slots()
 {
-    // Boundary Conditions
-    connect(
-        this->checkBox_aniso_periodical_a, SIGNAL( stateChanged( int ) ), this, SLOT( set_boundary_conditions() ) );
-    connect(
-        this->checkBox_aniso_periodical_b, SIGNAL( stateChanged( int ) ), this, SLOT( set_boundary_conditions() ) );
-    connect(
-        this->checkBox_aniso_periodical_c, SIGNAL( stateChanged( int ) ), this, SLOT( set_boundary_conditions() ) );
     // mu_s
     connect( this->lineEdit_muSpin_aniso, SIGNAL( returnPressed() ), this, SLOT( set_mu_s() ) );
     // External Field
