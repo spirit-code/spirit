@@ -55,6 +55,24 @@ anisotropy.normal    = [0.0, 0.0, 1.0]
 ### Cubic anisotropy constant [meV]
 cubic_anisotropy     = 2.0
 
+### Biaxual Anisotropy
+biaxial_anisotropy_axes = """
+i   K1x  K1y  K1z     K2x  K2y  K2z
+0   0.0  0.0  1.0     0.3  0.0  0.3
+"""
+
+biaxial_anisotropy_terms = """
+i   n1 n2 n3    k
+0   1  0  0     3.0
+0   2  0  0     1.8
+0   3  0  0     0.9
+0   1  2  0    -3.2
+0   0  4  0     3.2
+0   0  2  3    -1.6
+0   3  0  4     1.6
+0   1  1  1     5.2
+"""
+
 ### Dipole-Dipole radius (This is treated separately)
 ddi_radius                 = 0.0
 

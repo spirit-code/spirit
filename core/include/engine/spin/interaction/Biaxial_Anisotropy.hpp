@@ -189,12 +189,9 @@ Biaxial_Anisotropy::Gradient::operator()( Span<const Index> index, quantity<cons
                     const scalar b = fastpow( s3, n3 );
                     const scalar c = fastpow( sin_theta_2, n1 );
 
-                    if( n1 > 0 )
-                        result += k1 * ( coeff * a * b * n1 * ( -2.0 * s1 * fastpow( sin_theta_2, n1 - 1 ) ) );
-                    if( n2 > 0 )
-                        result += k2 * ( coeff * b * c * n2 * fastpow( s2, n2 - 1 ) );
-                    if( n3 > 0 )
-                        result += k3 * ( coeff * a * c * n3 * fastpow( s3, n3 - 1 ) );
+                    result += k1 * ( n1 > 0 ? coeff * a * b * n1 * ( -2.0 * s1 * fastpow( sin_theta_2, n1 - 1 ) ) : 0 );
+                    result += k2 * ( n2 > 0 ? coeff * b * c * n2 * fastpow( s2, n2 - 1 ) : 0 );
+                    result += k3 * ( n3 > 0 ? coeff * a * c * n3 * fastpow( s3, n3 - 1 ) : 0 );
                 }
                 return result;
             } );
@@ -222,6 +219,9 @@ void Biaxial_Anisotropy::Hessian::operator()(
 
             const scalar st2 = 1 - s1 * s1;
 
+            static constexpr auto safepow = []( const scalar base, int exp )
+            { return ( exp <= 0 ) ? 1.0 : fastpow( base, static_cast<unsigned int>( exp ) ); };
+
             for( auto iterm = site_p[iani]; iterm < site_p[iani + 1]; ++iterm )
             {
                 const auto & [coeff, n1, n2, n3] = terms[iterm];
@@ -229,20 +229,15 @@ void Biaxial_Anisotropy::Hessian::operator()(
                 const scalar a = fastpow( s2, n2 );
                 const scalar b = fastpow( s3, n3 );
                 const scalar c = fastpow( st2, n1 );
-                // clang-format off
-                const scalar p_11 = n1 <= 1 ? 0
-                    : 2 * n1 * ( 2 * n1 * s1 * s1 - 1 ) * ( coeff * a * b * fastpow( st2, n1 - 2 ) );
-                const scalar p_22 = n2 <= 1 ? 0
-                    : n2 * ( n2 - 1 ) * ( coeff * b * c * fastpow( s2, n2 - 2 ) );
-                const scalar p_33 = n3 <= 1 ? 0
-                    : n3 * ( n3 - 1 ) * ( coeff * a * c * fastpow( s3, n3 - 2 ) );
-                const scalar p_12 = n2 == 0 || n1 == 0 ? 0
-                    : b * coeff * n2 * fastpow( s2, n2 - 1 ) * ( -2.0 * n1 * s1 ) * fastpow( s1, n1 - 1 );
-                const scalar p_13 = n3 == 0 || n1 == 0 ? 0
-                    : a * coeff * n3 * fastpow( s3, n3 - 1 ) * ( -2.0 * n1 * s1 ) * fastpow( s1, n1 - 1 );
-                const scalar p_23 = n2 == 0 || n3 == 0 ? 0
-                    : c * coeff * n2 * fastpow( s2, n2 - 1 ) * n3 * fastpow( s3, n3 - 1 );
-                // clang-format on
+
+                const scalar p_11 = a * b
+                                    * ( -2.0 * n1 * safepow( st2, n1 - 1 )
+                                        + 4.0 * n1 * ( n1 - 1 ) * s1 * s1 * safepow( st2, n1 - 2 ) );
+                const scalar p_22 = n2 * ( n2 - 1 ) * ( b * c * safepow( s2, n2 - 2 ) );
+                const scalar p_33 = n3 * ( n3 - 1 ) * ( a * c * safepow( s3, n3 - 2 ) );
+                const scalar p_12 = b * n2 * safepow( s2, n2 - 1 ) * ( -2.0 * n1 * s1 ) * safepow( st2, n1 - 1 );
+                const scalar p_13 = a * n3 * safepow( s3, n3 - 1 ) * ( -2.0 * n1 * s1 ) * safepow( st2, n1 - 1 );
+                const scalar p_23 = c * n2 * safepow( s2, n2 - 1 ) * n3 * safepow( s3, n3 - 1 );
 
                 for( int alpha = 0; alpha < 3; ++alpha )
                 {
@@ -250,9 +245,12 @@ void Biaxial_Anisotropy::Hessian::operator()(
                     {
                         hessian(
                             3 * ispin + alpha, 3 * ispin + beta,
-                            k1[alpha] * ( p_11 * k1[beta] + p_12 * k2[beta] + p_13 * k3[beta] )
-                                + k2[alpha] * ( p_12 * k1[beta] + p_22 * k2[beta] + p_23 * k3[beta] )
-                                + k3[alpha] * ( p_13 * k1[beta] + p_23 * k2[beta] + p_33 * k3[beta] ) );
+                            coeff
+                                * ( p_11 * k1[alpha] * k1[beta] + p_22 * k2[alpha] * k2[beta]
+                                    + p_33 * k3[alpha] * k3[beta]
+                                    + p_12 * ( k1[alpha] * k2[beta] + k1[beta] * k2[alpha] )
+                                    + p_13 * ( k1[alpha] * k3[beta] + k1[beta] * k3[alpha] )
+                                    + p_23 * ( k2[alpha] * k3[beta] + k2[beta] * k3[alpha] ) ) );
                     }
                 }
             }
