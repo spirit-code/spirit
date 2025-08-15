@@ -147,9 +147,21 @@ inline Vector3 Cubic_Anisotropy::Gradient::operator()( Span<const Index> index, 
 
 template<>
 template<typename Callable>
-void Cubic_Anisotropy::Hessian::operator()( Span<const Index> index, const StateType & spins, Callable & hessian ) const
+void Cubic_Anisotropy::Hessian::operator()( Span<const Index> index, const StateType & state, Callable & hessian ) const
 {
-    // TODO: Not yet implemented
+    using Utility::fastpow;
+    Backend::cpu::for_each(
+        index.begin(), index.end(),
+        [this, &state, &index, &hessian]( const Index & idx )
+        {
+            for( int alpha = 0; alpha < 3; ++alpha )
+            {
+                const int i = 3 * idx.ispin + alpha;
+                const int j = 3 * idx.ispin + alpha;
+
+                hessian( i, j, -6.0 * magnitudes[idx.iani] * fastpow( state.spin[idx.ispin][alpha], 2u ) );
+            }
+        } );
 }
 
 } // namespace Interaction

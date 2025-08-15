@@ -52,6 +52,9 @@ external_field.direction  = [0.0, 0.0, 1.0]
 anisotropy.magnitude = 3.0
 anisotropy.normal    = [0.0, 0.0, 1.0]
 
+### Cubic anisotropy constant [meV]
+cubic_anisotropy     = 2.0
+
 ### Dipole-Dipole radius (This is treated separately)
 ddi_radius                 = 0.0
 
