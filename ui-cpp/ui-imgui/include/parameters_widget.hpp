@@ -94,13 +94,14 @@ struct Parameters
         scalar temperature_gradient_direction[3]{ 1, 0, 0 };
         scalar temperature_gradient_inclination = 0;
 
-        // - true:  use gradient approximation for STT
-        // - false: use pinned monolayer approximation with current in z-direction
-        bool stt_use_gradient = true;
+        // 0: use pinned monolayer approximation with current in z-direction
+        // 1:  use gradient approximation for STT
+        int spin_current_model{};
+
         // Spin transfer torque parameter (prop to injected current density)
-        scalar stt_magnitude = 0;
+        scalar spin_current_magnitude{ 0.0 };
         // Spin current polarisation normal vector
-        scalar stt_polarisation_normal[3]{ 1, 0, 0 };
+        std::array<scalar, 3> spin_current_direction{ 1.0, 0.0, 0.0 };
 
         // Do direct minimization instead of dynamics
         bool direct_minimization = false;

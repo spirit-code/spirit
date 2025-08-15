@@ -145,6 +145,10 @@ void ParametersWidget::show_content()
 
         ImGui::Dummy( { 0, 10 } );
 
+        // --------------------------------------
+        // Convergence, damping & timestep
+        // --------------------------------------
+
         ImGui::TextUnformatted( "Convergence limit" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
@@ -170,6 +174,10 @@ void ParametersWidget::show_content()
             Parameters_LLG_Set_Damping( state.get(), parameters_llg.damping );
 
         ImGui::Dummy( { 0, 10 } );
+
+        // --------------------------------------
+        // Temperature
+        // --------------------------------------
 
         ImGui::TextUnformatted( "Temperature" );
         ImGui::Indent( 15 );
@@ -202,37 +210,50 @@ void ParametersWidget::show_content()
 
         ImGui::Dummy( { 0, 10 } );
 
+        // --------------------------------------
+        // Spin currents
+        // --------------------------------------
+
         ImGui::TextUnformatted( "Spin torques" );
         ImGui::Indent( 15 );
-        std::vector<const char *> stt_approximation{ "Perpendicular current (STT)", "Gradient (SOT)" };
-        int stt_index = int( parameters_llg.stt_use_gradient );
+
         ImGui::SetNextItemWidth( 220 );
-        if( ImGui::Combo( "##approximation", &stt_index, stt_approximation.data(), int( stt_approximation.size() ) ) )
+
+        std::vector<const char *> spin_current_model_names{ "Monolayer (STT)", "Gradient (SOT)" };
+
+        bool set_spin_current{ false };
+        if( ImGui::Combo(
+                "##model", &parameters_llg.spin_current_model, spin_current_model_names.data(),
+                static_cast<int>( spin_current_model_names.size() ) ) )
         {
-            parameters_llg.stt_use_gradient = bool( stt_index );
-            Parameters_LLG_Set_STT(
-                state.get(), parameters_llg.stt_use_gradient, parameters_llg.stt_magnitude,
-                parameters_llg.stt_polarisation_normal );
+            set_spin_current = true;
         }
         ImGui::TextUnformatted( "Magnitude" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
         if( widgets::InputScalar(
-                "##llg_stt_magnitude", &parameters_llg.stt_magnitude, 0, 0, "%.5f",
+                "##llg_spin_current_magnitude", &parameters_llg.spin_current_magnitude, 0, 0, "%.5f",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
-            Parameters_LLG_Set_STT(
-                state.get(), parameters_llg.stt_use_gradient, parameters_llg.stt_magnitude,
-                parameters_llg.stt_polarisation_normal );
-        ImGui::TextUnformatted( "Polarisation" );
+        {
+            set_spin_current = true;
+        }
+        ImGui::TextUnformatted( "Direction" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 180 );
         if( widgets::InputScalar3(
-                "##llg_stt_polarisation_normal", parameters_llg.stt_polarisation_normal, "%.2f",
+                "##llg_spin_current_direction", parameters_llg.spin_current_direction.data(), "%.2f",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
-            Parameters_LLG_Set_STT(
-                state.get(), parameters_llg.stt_use_gradient, parameters_llg.stt_magnitude,
-                parameters_llg.stt_polarisation_normal );
+        {
+            set_spin_current = true;
+        }
         ImGui::Indent( -15 );
+
+        if( set_spin_current )
+        {
+            Parameters_LLG_Set_Spin_Current(
+                state.get(), parameters_llg.spin_current_model, parameters_llg.spin_current_magnitude,
+                parameters_llg.spin_current_direction.data() );
+        }
     }
     else if( ui_shared_state.selected_mode == GUI_Mode::MC )
     {
@@ -769,9 +790,11 @@ void ParametersWidget::update_data()
     parameters_llg.temperature       = Parameters_LLG_Get_Temperature( state.get() );
     Parameters_LLG_Get_Temperature_Gradient(
         state.get(), parameters_llg.temperature_gradient_direction, &parameters_llg.temperature_gradient_inclination );
-    Parameters_LLG_Get_STT(
-        state.get(), &parameters_llg.stt_use_gradient, &parameters_llg.stt_magnitude,
-        parameters_llg.stt_polarisation_normal );
+
+    Parameters_LLG_Get_Spin_Current(
+        state.get(), &parameters_llg.spin_current_model, &parameters_llg.spin_current_magnitude,
+        parameters_llg.spin_current_direction.data() );
+
     parameters_llg.direct_minimization = Parameters_LLG_Get_Direct_Minimization( state.get() );
     // Output
     parameters_llg.output_folder   = Parameters_LLG_Get_Output_Folder( state.get() );
