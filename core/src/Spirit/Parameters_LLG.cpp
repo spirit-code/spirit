@@ -329,8 +329,8 @@ try
         case( Data::SC_Model::MONOLAYER ):
         {
             Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
-                 "Spin Current: using the using the spin-transfer torque model (pinned monolayer approximation)",
-                 idx_image, idx_chain );
+                 "Spin Current: using the spin-transfer torque model (pinned monolayer approximation)", idx_image,
+                 idx_chain );
             break;
         }
     }
