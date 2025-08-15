@@ -63,6 +63,14 @@ i j   da db dc   Dijx Dijy Dijz   Jij
 0 0   0  0  1    0.0  0.0  6.0    10.0
 """
 
+### Two Site Anisotropy in meV per pair
+two_site_anisotropy = """
+i j   da db dc   Kijxx  Kijyy  Kijzz  Kijyz  Kijxz  Kijxy
+0 0    1  0  0    -1.0    0.5    0.5    0.3    0.1    0.2
+0 0    0  1  0     0.5   -1.0    0.5    0.2    0.3    0.1
+0 0    0  0  1     0.5    0.5   -1.0    0.1    0.2    0.3
+"""
+
 ### Quadruplets
 quadruplets = """
 i    j  da_j  db_j  dc_j    k  da_k  db_k  dc_k    l  da_l  db_l  dc_l    Q
