@@ -82,43 +82,49 @@ TEST_CASE( "Direction Constrained Monte Carlo should preserve direction", "[mc]"
 
 TEST_CASE( "Single Spin Energy Difference should agree with plain energy difference", "[mc]" )
 {
-    constexpr auto input_file      = "core/test/input/mc.toml";
+    constexpr auto input_files = std::array{
+        "core/test/input/mc.toml",
+        "core/test/input/hamiltonian.toml",
+    };
     static constexpr int n_samples = 50;
 
-    // Set up the initial direction of the spins
-    auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
-    REQUIRE( state != nullptr );
-    REQUIRE( !state->config_file.empty() );
-
-    const Vector3 init_direction = Vector3{ 0, 0., 1.0 };
-    Configuration_Domain( state.get(), init_direction.data() );
-
-    auto & hamiltonian  = *state->active_image->hamiltonian;
-    auto & system_state = *state->active_image->state;
-
-    auto prng             = std::mt19937( 91283 );
-    auto distribution     = std::uniform_real_distribution<scalar>( 0, 1 );
-    auto distribution_idx = std::uniform_int_distribution<int>( 0, system_state.spin.size() - 1 );
-
-    for( int i = 0; i < n_samples; ++i )
+    for( const auto * input_file : input_files )
     {
-        const int ispin = distribution_idx( prng );
+        // Set up the initial direction of the spins
+        auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
+        REQUIRE( state != nullptr );
+        REQUIRE( !state->config_file.empty() );
 
-        for( auto interaction : hamiltonian.active_interactions() )
+        const Vector3 init_direction = Vector3{ 0, 0., 1.0 };
+        Configuration_Domain( state.get(), init_direction.data() );
+
+        auto & hamiltonian  = *state->active_image->hamiltonian;
+        auto & system_state = *state->active_image->state;
+
+        auto prng             = std::mt19937( 91283 );
+        auto distribution     = std::uniform_real_distribution<scalar>( 0, 1 );
+        auto distribution_idx = std::uniform_int_distribution<int>( 0, system_state.spin.size() - 1 );
+
+        for( int i = 0; i < n_samples; ++i )
         {
-            const auto full_energy_pre = interaction->Energy( system_state );
-            const auto energy_pre      = interaction->Energy_Single_Spin( ispin, system_state );
+            const int ispin = distribution_idx( prng );
 
-            Engine::Vectormath::get_random_vector_unitsphere( distribution, prng, system_state.spin[ispin] );
+            for( auto interaction : hamiltonian.active_interactions() )
+            {
+                const auto full_energy_pre = interaction->Energy( system_state );
+                const auto energy_pre      = interaction->Energy_Single_Spin( ispin, system_state );
 
-            const auto full_energy_post = interaction->Energy( system_state );
-            const auto energy_post      = interaction->Energy_Single_Spin( ispin, system_state );
+                Engine::Vectormath::get_random_vector_unitsphere( distribution, prng, system_state.spin[ispin] );
 
-            const scalar full_energy_diff = full_energy_post - full_energy_pre;
-            const scalar energy_diff      = energy_post - energy_pre;
+                const auto full_energy_post = interaction->Energy( system_state );
+                const auto energy_post      = interaction->Energy_Single_Spin( ispin, system_state );
 
-            INFO( "Interaction: '" << interaction->Name() << "', Iteration: " << i );
-            REQUIRE_THAT( energy_diff, WithinAbs( full_energy_diff, epsilon_3 ) );
+                const scalar full_energy_diff = full_energy_post - full_energy_pre;
+                const scalar energy_diff      = energy_post - energy_pre;
+
+                INFO( "Interaction: '" << interaction->Name() << "', Iteration: " << i );
+                REQUIRE_THAT( energy_diff, WithinAbs( full_energy_diff, epsilon_3 ) );
+            }
         }
     }
 }
