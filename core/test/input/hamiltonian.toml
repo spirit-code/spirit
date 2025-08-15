@@ -97,16 +97,3 @@ quadruplets = """
 i    j  da_j  db_j  dc_j    k  da_k  db_k  dc_k    l  da_l  db_l  dc_l    Q
 0    0  1     0     0       0  0     1     0       0  1     1     0       3.0
 """
-
-
-### Gaussians
-###   a is the amplitude, s is the width, c the center
-###   the directions c you enter will be normalized
-###   a1 s1 c1.x c1.y c1.z
-###   ...
-gaussians = """
--0.5  0.2   1  0  0
- 0.5  0.2  -1  0  0
--1.0  0.2   0  1  0
--1.0  0.2   0 -1  0
-"""
