@@ -14,6 +14,7 @@ NAME = "spirit"
 PACKAGES = [
     "spirit",
     "spirit.parameters",
+    "spirit._compat",
     "spirit_cli_tools",
     "spirit_cli_tools.templates",
 ]
