@@ -3,6 +3,7 @@
 #include <io/Filter_File_Handle.hpp>
 #include <io/Tableparser.hpp>
 
+#include <unordered_map>
 #include <vector>
 
 using Utility::Log_Level, Utility::Log_Sender;

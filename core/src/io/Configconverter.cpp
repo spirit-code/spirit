@@ -8,6 +8,7 @@
 #include <toml++/toml.hpp>
 
 #include <string>
+#include <unordered_map>
 
 namespace IO
 {

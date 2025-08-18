@@ -13,6 +13,8 @@
 #include <Spirit/Simulation.h>
 #include <Spirit/System.h>
 
+#include <array>
+
 template<typename T>
 bool normalize( T & vec )
 {
