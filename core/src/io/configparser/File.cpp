@@ -26,7 +26,9 @@ auto TOML_from_Config( const std::string & config_file ) -> toml::table
     else
     {
         Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-             "The file \"{}\" is using the deprecated config format. Please convert your config file to toml." );
+             fmt::format(
+                 "The file \"{}\" is using the deprecated config format. Please convert your config file to toml.",
+                 config_file ) );
         return IO::convert::Config( config_file );
     };
 }
