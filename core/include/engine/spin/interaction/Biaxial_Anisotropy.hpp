@@ -132,7 +132,7 @@ protected:
 template<>
 inline scalar Biaxial_Anisotropy::Energy::operator()( Span<const Index> index, quantity<const Vector3 *> state ) const
 {
-    using Utility::fastpow;
+    using Utility::safepow;
     if( !is_contributing )
         return 0;
     else
@@ -151,7 +151,7 @@ inline scalar Biaxial_Anisotropy::Energy::operator()( Span<const Index> index, q
                 for( auto iterm = site_p[iani]; iterm < site_p[iani + 1]; ++iterm )
                 {
                     const auto & [coeff, n1, n2, n3] = terms[iterm];
-                    result += coeff * fastpow( sin_theta_2, n1 ) * fastpow( s2, n2 ) * fastpow( s3, n3 );
+                    result += coeff * safepow( sin_theta_2, n1 ) * safepow( s2, n2 ) * safepow( s3, n3 );
                 }
 
                 return result;
@@ -162,7 +162,7 @@ template<>
 inline Vector3
 Biaxial_Anisotropy::Gradient::operator()( Span<const Index> index, quantity<const Vector3 *> state ) const
 {
-    using Utility::fastpow;
+    using Utility::safepow;
     if( !is_contributing )
         return Vector3::Zero();
     else
@@ -185,13 +185,13 @@ Biaxial_Anisotropy::Gradient::operator()( Span<const Index> index, quantity<cons
                 {
                     const auto & [coeff, n1, n2, n3] = terms[iterm];
 
-                    const scalar a = fastpow( s2, n2 );
-                    const scalar b = fastpow( s3, n3 );
-                    const scalar c = fastpow( sin_theta_2, n1 );
+                    const scalar a = safepow( s2, n2 );
+                    const scalar b = safepow( s3, n3 );
+                    const scalar c = safepow( sin_theta_2, n1 );
 
-                    result += k1 * ( n1 > 0 ? coeff * a * b * n1 * ( -2.0 * s1 * fastpow( sin_theta_2, n1 - 1 ) ) : 0 );
-                    result += k2 * ( n2 > 0 ? coeff * b * c * n2 * fastpow( s2, n2 - 1 ) : 0 );
-                    result += k3 * ( n3 > 0 ? coeff * a * c * n3 * fastpow( s3, n3 - 1 ) : 0 );
+                    result += k1 * ( n1 > 0 ? coeff * a * b * n1 * ( -2.0 * s1 * safepow( sin_theta_2, n1 - 1 ) ) : 0 );
+                    result += k2 * ( n2 > 0 ? coeff * b * c * n2 * safepow( s2, n2 - 1 ) : 0 );
+                    result += k3 * ( n3 > 0 ? coeff * a * c * n3 * safepow( s3, n3 - 1 ) : 0 );
                 }
                 return result;
             } );
@@ -202,7 +202,7 @@ template<typename Callable>
 void Biaxial_Anisotropy::Hessian::operator()(
     Span<const Index> index, const StateType & state, Callable & hessian ) const
 {
-    using Utility::fastpow;
+    using Utility::safepow;
     if( !is_contributing )
         return;
 
@@ -219,16 +219,13 @@ void Biaxial_Anisotropy::Hessian::operator()(
 
             const scalar st2 = 1 - s1 * s1;
 
-            static constexpr auto safepow = []( const scalar base, int exp )
-            { return ( exp <= 0 ) ? 1.0 : fastpow( base, static_cast<unsigned int>( exp ) ); };
-
             for( auto iterm = site_p[iani]; iterm < site_p[iani + 1]; ++iterm )
             {
                 const auto & [coeff, n1, n2, n3] = terms[iterm];
 
-                const scalar a = fastpow( s2, n2 );
-                const scalar b = fastpow( s3, n3 );
-                const scalar c = fastpow( st2, n1 );
+                const scalar a = safepow( s2, n2 );
+                const scalar b = safepow( s3, n3 );
+                const scalar c = safepow( st2, n1 );
 
                 const scalar p_11 = a * b
                                     * ( -2.0 * n1 * safepow( st2, n1 - 1 )

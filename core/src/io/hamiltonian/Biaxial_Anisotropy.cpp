@@ -89,8 +89,7 @@ void Biaxial_Anisotropy_Terms_from_File(
 try
 {
     // parser initialization
-    using AnisotropyTableParser
-        = TableParserInit<std::array<int, 1>, std::array<unsigned int, 3>, std::array<scalar, 1>>;
+    using AnisotropyTableParser = TableParserInit<std::array<int, 4>, std::array<scalar, 1>>;
     const AnisotropyTableParser parser( { "i", "n1", "n2", "n3", "k" } );
 
     // factory function for creating a lambda that transforms the row that is read

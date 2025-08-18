@@ -132,7 +132,7 @@ struct PolynomialBasis
 struct PolynomialTerm
 {
     scalar coefficient;
-    unsigned int n1, n2, n3;
+    int n1, n2, n3;
 };
 
 struct AnisotropyPolynomial

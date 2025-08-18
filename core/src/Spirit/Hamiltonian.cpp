@@ -173,8 +173,8 @@ catch( ... )
 }
 
 void Hamiltonian_Set_Biaxial_Anisotropy(
-    State * state, const scalar * magnitude, const unsigned int exponents[][3], const scalar * primary,
-    const scalar * secondary, int n_terms, int idx_image, int idx_chain ) noexcept
+    State * state, const scalar * magnitude, const int exponents[][3], const scalar * primary, const scalar * secondary,
+    int n_terms, int idx_image, int idx_chain ) noexcept
 try
 {
     // Fetch correct indices and pointers

@@ -228,13 +228,13 @@ TEST_CASE( "Biaxial anisotropy", "[anisotropy]" )
     auto interaction = hamiltonian->getInteraction<Engine::Spin::Interaction::Biaxial_Anisotropy>();
     REQUIRE( interaction != nullptr );
 
-    using exponents_t = std::array<unsigned int, 3>;
+    using exponents_t = std::array<int, 3>;
     static constexpr int init_n_terms{ 7 };
     static constexpr std::array<scalar, 3> init_primary{ 0, 0, 1 };
     static constexpr std::array<scalar, 3> init_secondary{ 1, 0, 0 };
     static constexpr std::array init_exponents{
-        std::array{ 1u, 0u, 0u }, std::array{ 2u, 0u, 0u }, std::array{ 3u, 0u, 0u }, std::array{ 1u, 2u, 0u },
-        std::array{ 0u, 4u, 0u }, std::array{ 3u, 2u, 0u }, std::array{ 3u, 4u, 0u },
+        std::array{ 1, 0, 0 }, std::array{ 2, 0, 0 }, std::array{ 3, 0, 0 }, std::array{ 1, 2, 0 },
+        std::array{ 0, 4, 0 }, std::array{ 3, 2, 0 }, std::array{ 3, 4, 0 },
     };
     static constexpr std::array<scalar, 7> init_magnitudes{ 3.0, 1.8, 0.9, -3.2, 3.2, -1.6, 1.6 };
 
@@ -406,7 +406,7 @@ TEST_CASE( "Biaxial anisotropy", "[anisotropy]" )
         auto angle_theta = std::uniform_real_distribution<scalar>( 0, C::Pi );
         auto angle_phi   = std::uniform_real_distribution<scalar>( -2 * C::Pi, 2 * C::Pi );
         auto coeff       = std::uniform_real_distribution<scalar>( -10.0, 10.0 );
-        auto exp         = std::uniform_int_distribution<unsigned int>( 0, 6 );
+        auto exp         = std::uniform_int_distribution<int>( 0, 6 );
 
         for( int n = 0; n < 6; ++n )
         {

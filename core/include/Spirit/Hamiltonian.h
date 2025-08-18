@@ -99,8 +99,8 @@ Hamiltonian_Set_Cubic_Anisotropy( State * state, scalar magnitude, int idx_image
 
 /// Set a global biaxial anisotropy [meV]
 PREFIX void Hamiltonian_Set_Biaxial_Anisotropy(
-    State * state, const scalar * magnitude, const unsigned int exponents[][3], const scalar * primary,
-    const scalar * secondary, int n_terms, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, const scalar * magnitude, const int exponents[][3], const scalar * primary, const scalar * secondary,
+    int n_terms, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /// Set the exchange interaction in terms of neighbour shells [meV]
 PREFIX void Hamiltonian_Set_Exchange(

@@ -22,4 +22,11 @@ constexpr T fastpow( T base, Exp exp ) noexcept
     return result;
 }
 
+template<typename T, typename Exp = int>
+constexpr T safepow( T base, Exp exp ) noexcept
+{
+    static_assert( std::is_integral<Exp>::value, "Exponent type must be integral!" );
+    return exp > 0 ? fastpow( base, static_cast<std::make_unsigned_t<Exp>>( exp ) ) : 1.0;
+}
+
 } // namespace Utility
