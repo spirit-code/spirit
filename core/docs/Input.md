@@ -203,14 +203,14 @@ a set of bravais vectors:
 
 ```toml
 ### bravais_vectors or bravais_matrix
-###   a.x a.y a.z       a.x b.x c.x
-###   b.x b.y b.z       a.y b.y c.y
-###   c.x c.y c.z       a.z b.z c.z
-bravais_vectors = """
-1.0 0.0 0.0
-0.0 1.0 0.0
-0.0 0.0 1.0
-"""
+###  [[a.x, a.y, a.z],      [[a.x, b.x, c.x],
+###   [b.x, b.y, b.z],       [a.y, b.y, c.y],
+###   [c.x, c.y, c.z]]       [a.z, b.z, c.z]]
+bravais_vectors = [
+  [1.0, 0.0, 0.0],
+  [0.0, 1.0, 0.0],
+  [0.0, 0.0, 1.0],
+]
 ```
 
 A lattice constant can be used for scaling:

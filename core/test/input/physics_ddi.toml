@@ -74,11 +74,11 @@ mu_s = 2.17
 ### Lattice constant for basis and translations
 lattice_constant = 2.77
 
-bravais_vectors = """
- 3   0 -1
- 0   1  0
-0.3  -2  1
-"""
+bravais_vectors = [
+[  3,   0,  -1 ],
+[  0,   1,   0 ],
+[0.3,  -2,   1 ],
+]
 
 ### Number of basis cells along principal
 ### directions (a b c)
