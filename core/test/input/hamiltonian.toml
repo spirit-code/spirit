@@ -32,7 +32,7 @@ bravais_lattice = "sc"
 
 ### Number of basis cells along principal
 ### directions (a b c)
-n_basis_cells = [2, 2, 1]
+n_basis_cells = [3, 3, 3]
 
 ### µSpin
 mu_s           = 2.0

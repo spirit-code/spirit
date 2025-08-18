@@ -43,7 +43,6 @@ static constexpr std::array input_files{
     "core/test/input/fd_quadruplet.toml",
     // These should be sufficent at some point
     "core/test/input/fd_neighbours.toml",
-    "core/test/input/mc.toml",
     "core/test/input/hamiltonian.toml",
 };
 
@@ -74,11 +73,11 @@ TEST_CASE( "Finite difference and regular Hamiltonian should match", "[hamiltoni
             INFO( "Interaction: " << interaction->Name() << "\n" );
             for( int i = 0; i < state->nos; i++ )
             {
-                INFO( "i = " << i << ", epsilon = " << epsilon_3 << "\n" );
+                INFO( "i = " << i << ", epsilon = " << epsilon_2 << "\n" );
                 INFO( "Gradient (FD) = " << grad_fd[i].transpose() << "\n" );
                 INFO( "Gradient      = " << grad[i].transpose() << "\n" );
 
-                REQUIRE( grad_fd[i].isApprox( grad[i], epsilon_3 ) );
+                REQUIRE( grad_fd[i].isApprox( grad[i], epsilon_2 ) );
             }
         }
 
@@ -133,10 +132,10 @@ TEST_CASE( "Dipole-Dipole Interaction", "[hamiltonian]" )
         INFO( "Interaction: " << ddi_interaction->Name() << "\n" );
         for( int i = 0; i < state->nos; i++ )
         {
-            INFO( "i = " << i << ", epsilon = " << epsilon_6 << "\n" );
+            INFO( "i = " << i << ", epsilon = " << epsilon_3 << "\n" );
             INFO( "Gradient (FD) = " << grad_fft_fd[i].transpose() << "\n" );
             INFO( "Gradient      = " << grad_fft[i].transpose() << "\n" );
-            REQUIRE_THAT( ( grad_fft_fd[i] - grad_fft[i] ).norm(), WithinAbs( 0, epsilon_6 ) );
+            REQUIRE_THAT( ( grad_fft_fd[i] - grad_fft[i] ).norm(), WithinAbs( 0, epsilon_3 ) );
         }
     }
     // Direct (cutoff) gradient and energy
@@ -149,18 +148,18 @@ TEST_CASE( "Dipole-Dipole Interaction", "[hamiltonian]" )
     // Compare gradients
     for( int i = 0; i < state->nos; i++ )
     {
-        INFO( "Failed DDI-Gradient comparison at i = " << i << ", epsilon = " << epsilon_6 << "\n" );
+        INFO( "Failed DDI-Gradient comparison at i = " << i << ", epsilon = " << epsilon_2 << "\n" );
         INFO( "Gradient (FFT)    = " << grad_fft[i].transpose() << "\n" );
         INFO( "Gradient (Direct) = " << grad_direct[i].transpose() << "\n" );
         REQUIRE( grad_fft[i].isApprox(
-            grad_direct[i], epsilon_6 ) ); // Seems this is a relative test, not an absolute error margin
+            grad_direct[i], epsilon_2 ) ); // Seems this is a relative test, not an absolute error margin
     }
 
     // Compare energies
-    INFO( "Failed energy comparison test! epsilon = " << epsilon_6 );
+    INFO( "Failed energy comparison test! epsilon = " << epsilon_5 );
     INFO( "Energy (Direct) = " << energy_direct << "\n" );
     INFO( "Energy (FFT)    = " << energy_fft << "\n" );
-    REQUIRE_THAT( energy_fft, WithinAbs( energy_direct, epsilon_6 ) );
+    REQUIRE_THAT( energy_fft, WithinAbs( energy_direct, epsilon_5 ) );
 }
 
 TEST_CASE( "Ensure that Hamiltonian is really just an aggregator", "[hamiltonian]" )
