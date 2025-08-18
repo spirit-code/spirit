@@ -775,8 +775,13 @@ endif()
 #----- Shared library and python tests
 if( SPIRIT_BUILD_FOR_PYTHON )
     install( DIRECTORY python/spirit DESTINATION python COMPONENT spirit_core_python
-        FILES_MATCHING PATTERN "*.py" )
+        PATTERN "*.py"
+        PATTERN "__pycache__" EXCLUDE )
     install( TARGETS ${META_PROJECT_NAME}_python DESTINATION python/spirit COMPONENT spirit_core_python )
+    install( DIRECTORY python/spirit_cli_tools DESTINATION python COMPONENT spirit_core_python
+        PATTERN "*.py"
+        PATTERN "*.j2"
+        PATTERN "__pycache__" EXCLUDE )
     install( FILES python/setup.py DESTINATION python COMPONENT spirit_core_python )
     install( FILES python/pyproject.toml DESTINATION python COMPONENT spirit_core_python )
     install( FILES python/README.md DESTINATION python COMPONENT spirit_core_python )
