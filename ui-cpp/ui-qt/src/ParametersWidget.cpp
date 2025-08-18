@@ -91,7 +91,7 @@ void ParametersWidget::Load_Parameters_Contents()
     // Spin polarized current
     int spin_current_model{};
     scalar spin_current_magnitude{};
-    std::array<double, 3> spin_current_direction{};
+    std::array<scalar, 3> spin_current_direction{};
     Parameters_LLG_Get_Spin_Current(
         state.get(), &spin_current_model, &spin_current_magnitude, spin_current_direction.data() );
     this->comboBox_spin_current_model->setCurrentIndex( spin_current_model );
@@ -286,9 +286,11 @@ void ParametersWidget::set_parameters_llg()
         const scalar spin_current_magnitude
             = this->checkBox_llg_stt->isChecked() ? this->doubleSpinBox_llg_stt_magnitude->value() : 0.0;
 
-        std::array<double, 3> spin_current_direction{ doubleSpinBox_llg_stt_polarisation_x->value(),
-                                                      doubleSpinBox_llg_stt_polarisation_y->value(),
-                                                      doubleSpinBox_llg_stt_polarisation_z->value() };
+        std::array<scalar, 3> spin_current_direction{
+            static_cast<scalar>( doubleSpinBox_llg_stt_polarisation_x->value() ),
+            static_cast<scalar>( doubleSpinBox_llg_stt_polarisation_y->value() ),
+            static_cast<scalar>( doubleSpinBox_llg_stt_polarisation_z->value() )
+        };
 
         bool success = normalize( spin_current_direction );
         if( !success )
