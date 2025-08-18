@@ -77,7 +77,7 @@ TEST_CASE( "Finite difference and regular Hamiltonian should match", "[hamiltoni
                 INFO( "Gradient (FD) = " << grad_fd[i].transpose() << "\n" );
                 INFO( "Gradient      = " << grad[i].transpose() << "\n" );
 
-                REQUIRE( grad_fd[i].isApprox( grad[i], epsilon_2 ) );
+                REQUIRE_THAT( ( grad_fd[i] - grad[i] ).norm(), WithinAbs( 0, epsilon_2 ) );
             }
         }
 
@@ -151,8 +151,7 @@ TEST_CASE( "Dipole-Dipole Interaction", "[hamiltonian]" )
         INFO( "Failed DDI-Gradient comparison at i = " << i << ", epsilon = " << epsilon_2 << "\n" );
         INFO( "Gradient (FFT)    = " << grad_fft[i].transpose() << "\n" );
         INFO( "Gradient (Direct) = " << grad_direct[i].transpose() << "\n" );
-        REQUIRE( grad_fft[i].isApprox(
-            grad_direct[i], epsilon_2 ) ); // Seems this is a relative test, not an absolute error margin
+        REQUIRE_THAT( ( grad_fft[i] - grad_direct[i] ).norm(), WithinAbs( 0, epsilon_2 ) );
     }
 
     // Compare energies
