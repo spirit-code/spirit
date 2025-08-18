@@ -5,7 +5,7 @@ import re
 import subprocess
 
 from setuptools import setup
-from pkg_resources import get_build_platform
+import sysconfig
 from wheel.bdist_wheel import bdist_wheel as bdist_wheel_
 
 HERE = os.path.abspath(os.path.dirname(__file__))
@@ -72,7 +72,7 @@ class bdist_wheel(bdist_wheel_):
     def finalize_options(self):
         super().finalize_options()
         platform = os.environ.get("SPIRIT_PLATFORM_OVERRIDE", "")
-        self.plat_name = platform if platform else get_build_platform()
+        self.plat_name = platform if platform else sysconfig.get_platform()
         self.plat_name_supplied = True
 
 
