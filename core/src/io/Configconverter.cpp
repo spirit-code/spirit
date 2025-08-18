@@ -1124,7 +1124,8 @@ auto DDI( const std::string & config_file_name ) -> toml::table
             fmt::format( "Unable to read DDI radius from config file \"{}\"", config_file_name ) );
     };
 
-    if( ddi_method_str.empty() || ddi_radius == 0 )
+    std::transform( ddi_method_str.begin(), ddi_method_str.end(), ddi_method_str.begin(), ::tolower );
+    if( ddi_method_str.empty() || ( ddi_method_str != "fft" && ddi_radius == 0 ) )
         return toml::table{};
     else
         return toml::table{
