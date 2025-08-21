@@ -143,8 +143,9 @@ auto Parameters_Method_GNEB_from_TOML( const toml::table & tbl, const Defaults &
             constexpr auto o_prefix
                 = []( const std::string_view key ) { return fmt::format( "{}.output.{}", config_path, key ); };
 
-            read_value_with_default( tbl, prefix( "file_tag" ), parameters->output_file_tag, defaults.output.file_tag );
-            read_value_with_default( tbl, prefix( "folder" ), parameters->output_folder, defaults.output.directory );
+            read_value_with_default(
+                tbl, o_prefix( "file_tag" ), parameters->output_file_tag, defaults.output.file_tag );
+            read_value_with_default( tbl, o_prefix( "folder" ), parameters->output_folder, defaults.output.directory );
             read_value( tbl, o_prefix( "any" ), parameters->output_any );
             read_value( tbl, o_prefix( "initial" ), parameters->output_initial );
             read_value( tbl, o_prefix( "final" ), parameters->output_final );
