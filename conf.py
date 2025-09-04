@@ -245,7 +245,7 @@ apidoc_modules = [
 ]
 
 # This allows skipping the build process because the object library is never required
-autodoc_mock_imports = ["spirit.spiritlib"]
+autodoc_mock_imports = ["spirit.spiritlib", "spiritlib"]
 
 
 def pre_build_hook(_):
