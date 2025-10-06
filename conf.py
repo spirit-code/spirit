@@ -112,7 +112,6 @@ exclude_patterns = [
     ".venv",
     ".github",
     "_build",
-    "core/docs/python-api/apidoc/spirit.rst",
     "core/docs/python-api/apidoc/modules.rst",
     "core/thirdparty/toml++/README.md",
     "Thumbs.db",
