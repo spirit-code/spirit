@@ -38,7 +38,7 @@ Spirit - Spin Simulation Framework
     Full Reference  <core/docs/c-api/API_Reference>
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 5
     :caption: Python API
 
     Usage           <core/docs/Python_API>
