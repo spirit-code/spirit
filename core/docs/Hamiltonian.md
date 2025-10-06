@@ -30,7 +30,9 @@ external_field.direction = [0.0, 0.0, 1.0]
 :::{tab-item} Python
 ```{eval-rst}
 .. autofunction:: spirit.hamiltonian.set_field
+   :no-index:
 .. autofunction:: spirit.hamiltonian.get_field
+   :no-index:
 ```
 :::
 
@@ -88,7 +90,9 @@ i  Kx Ky Kz    K   K4
 :::{tab-item} Python
 ```{eval-rst}
 .. autofunction:: spirit.hamiltonian.get_anisotropy
+   :no-index:
 .. autofunction:: spirit.hamiltonian.set_anisotropy
+   :no-index:
 ```
 :::
 
@@ -153,7 +157,9 @@ i  n1 n2 n3    K
 :::{tab-item} Python
 ```{eval-rst}
 .. autofunction:: spirit.hamiltonian.get_biaxial_anisotropy
+   :no-index:
 .. autofunction:: spirit.hamiltonian.set_biaxial_anisotropy
+   :no-index:
 ```
 :::
 
@@ -224,11 +230,17 @@ If the `Jij` or `Dij` keywords used for shells are present the associated column
 :::{tab-item} Python
 ```{eval-rst}
 .. autodata:: spirit.hamiltonian.CHIRALITY_BLOCH
+   :no-index:
 .. autodata:: spirit.hamiltonian.CHIRALITY_NEEL
+   :no-index:
 .. autodata:: spirit.hamiltonian.CHIRALITY_BLOCH_INVERSE
+   :no-index:
 .. autodata:: spirit.hamiltonian.CHIRALITY_NEEL_INVERSE
+   :no-index:
 .. autofunction:: spirit.hamiltonian.set_dmi
+   :no-index:
 .. autofunction:: spirit.hamiltonian.set_exchange
+   :no-index:
 ```
 :::
 
@@ -341,10 +353,15 @@ ddi_pb_zero_padding      = 1.0
 :::{tab-item} Python
 ```{eval-rst}
 .. autodata:: spirit.hamiltonian.DDI_METHOD_NONE
+   :no-index:
 .. autodata:: spirit.hamiltonian.DDI_METHOD_FFT
+   :no-index:
 .. autodata:: spirit.hamiltonian.DDI_METHOD_CUTOFF
+   :no-index:
 .. autofunction:: spirit.hamiltonian.get_ddi
+   :no-index:
 .. autofunction:: spirit.hamiltonian.set_ddi
+   :no-index:
 ```
 :::
 
