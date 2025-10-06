@@ -238,6 +238,7 @@ apidoc_modules = [
         "destination": "core/docs/python-api/apidoc",
         "module_first": True,
         "separate_modules": True,
+        "implicit_namespaces": True,
     }
 ]
 
