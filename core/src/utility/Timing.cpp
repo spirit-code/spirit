@@ -15,10 +15,10 @@ namespace Timing
 using std::chrono::duration;
 using std::chrono::system_clock;
 
-std::string CurrentDateTime()
+std::string CurrentDateTimeSeconds()
 {
     // Get timepoint
-    system_clock::time_point now = system_clock::now();
+    system_clock::time_point now = std::chrono::time_point_cast<std::chrono::seconds>( system_clock::now() );
     // Return string from timepoint
     return fmt::format( "{:%Y-%m-%d_%H-%M-%S}", now );
 }

@@ -28,7 +28,7 @@ std::string IndexToString( int idx )
 LoggingHandler::LoggingHandler()
 {
     if( file_tag == "<time>" )
-        file_name = fmt::format( "Log_{}.txt", Utility::Timing::CurrentDateTime() );
+        file_name = fmt::format( "Log_{}.txt", Utility::Timing::CurrentDateTimeSeconds() );
     else if( file_tag.empty() )
         file_name = "Log.txt";
     else

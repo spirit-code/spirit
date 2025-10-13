@@ -101,7 +101,7 @@ try
     Log.file_tag         = file_tag;
 
     if( file_tag == std::string( "<time>" ) )
-        Log.file_name = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
+        Log.file_name = "Log_" + Utility::Timing::CurrentDateTimeSeconds() + ".txt";
     else if( file_tag == std::string( "" ) )
         Log.file_name = "Log.txt";
     else

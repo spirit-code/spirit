@@ -13,7 +13,7 @@ namespace Timing
 {
 
 // Returns the current time like: 2012-05-06_21:47:59
-std::string CurrentDateTime();
+std::string CurrentDateTimeSeconds();
 
 // Returns the DateTime difference between two DateTimes
 std::string DateTimePassed( std::chrono::duration<scalar> dt );

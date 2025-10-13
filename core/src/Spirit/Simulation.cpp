@@ -40,7 +40,7 @@ void run_method( Engine::Method & method, bool singleshot, Simulation_Run_Info *
     if( singleshot )
     {
         //---- Start timings
-        method.starttime = Utility::Timing::CurrentDateTime();
+        method.starttime = Utility::Timing::CurrentDateTimeSeconds();
         method.t_start   = std::chrono::system_clock::now();
         method.t_last    = std::chrono::system_clock::now();
         method.iteration = 0;

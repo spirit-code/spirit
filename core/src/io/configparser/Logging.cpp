@@ -26,7 +26,7 @@ try
         Log.output_folder = output_folder;
 
         if( file_tag == "<time>" )
-            Log.file_name = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
+            Log.file_name = "Log_" + Utility::Timing::CurrentDateTimeSeconds() + ".txt";
         else if( !file_tag.empty() )
             Log.file_name = "Log_" + file_tag + ".txt";
         else

@@ -45,13 +45,13 @@ Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img
     for( std::uint8_t i = 0; i < 7; ++i )
         this->t_iterations.push_back( std::chrono::system_clock::now() );
     this->ips       = 0;
-    this->starttime = Timing::CurrentDateTime();
+    this->starttime = Timing::CurrentDateTimeSeconds();
 }
 
 void Method::Iterate()
 {
     //---- Start timings
-    this->starttime = Timing::CurrentDateTime();
+    this->starttime = Timing::CurrentDateTimeSeconds();
     this->t_start   = std::chrono::system_clock::now();
     auto t_current  = std::chrono::system_clock::now();
     this->t_last    = std::chrono::system_clock::now();
