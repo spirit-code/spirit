@@ -59,8 +59,8 @@ TEST_CASE( "neighbors", "[pairs]" )
     {
         const std::vector<Vector3> basis   = { { 0., 0., 0. }, { 2. / 3., 1. / 3., 0.5 } };
         const std::vector<Vector3> bravais = {
-            { 0.5, -0.5 * std::sqrt( 3 ), 0 },
-            { 0.5, 0.5 * std::sqrt( 3 ), 0 },
+            { 0.5, static_cast<scalar>( -0.5 * std::sqrt( 3 ) ), 0 },
+            { 0.5, static_cast<scalar>( 0.5 * std::sqrt( 3 ) ), 0 },
             { 0, 0, 1.633 },
         };
         const auto composition = Data::Basis_Cell_Composition::make_default( basis.size() );
