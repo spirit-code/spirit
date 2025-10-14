@@ -307,11 +307,11 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & tbl, const Defaults & 
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "damping", parameters->damping ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "beta", parameters->beta ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<17} = {}", "stt model", Enum::name( parameters->spin_current_model ) ) );
+        fmt::format( "    {:<17} = {}", "sc model", Enum::name( parameters->spin_current_model ) ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<17} = {}", "stt magnitude", parameters->spin_current_vector_magnitude ) );
+        fmt::format( "    {:<17} = {}", "sc magnitude", parameters->spin_current_vector_magnitude ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<17} = {}", "stt direction", parameters->spin_current_vector_direction.transpose() ) );
+        fmt::format( "    {:<17} = {}", "sc direction", parameters->spin_current_vector_direction.transpose() ) );
     parameter_log.emplace_back(
         fmt::format( "    {:<17} = {:e}", "force convergence", parameters->force_convergence ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
