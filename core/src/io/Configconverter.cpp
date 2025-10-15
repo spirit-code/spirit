@@ -1223,7 +1223,7 @@ auto Pair_Interactions_from_Pairs( const std::string & config_file_name ) -> tom
         {
             std::string pairs_file = "";
             config_file_handle >> pairs_file;
-            tbl.insert( "interaction_pairs", fmt::format( "{}{}", Filter_File_Handle::file_prefix, pairs_file ) );
+            tbl.insert( "pairs", fmt::format( "{}{}", Filter_File_Handle::file_prefix, pairs_file ) );
         }
     }
     catch( ... )
