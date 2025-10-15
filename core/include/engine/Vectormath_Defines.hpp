@@ -148,12 +148,6 @@ struct PolynomialField
     field<PolynomialTerm> terms;
 };
 
-struct Neighbour : Pair
-{
-    // Shell index
-    int idx_shell;
-};
-
 // Important fields
 using intfield    = field<int>;
 using scalarfield = field<scalar>;
@@ -163,5 +157,4 @@ using vectorfield = field<Vector3>;
 using pairfield       = field<Pair>;
 using tripletfield    = field<Triplet>;
 using quadrupletfield = field<Quadruplet>;
-using neighbourfield  = field<Neighbour>;
 using vector2field    = field<Vector2>;
