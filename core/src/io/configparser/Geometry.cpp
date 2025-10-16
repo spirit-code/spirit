@@ -476,7 +476,10 @@ auto Geometry_from_TOML( const toml::table & root ) -> Data::Geometry
     // Log the parameters
     std::vector<std::string> parameter_log;
     parameter_log.emplace_back( "Geometry:" );
-    parameter_log.emplace_back( fmt::format( "    lattice constant = {} Angstrom", lattice_constant ) );
+    parameter_log.emplace_back( fmt::format(
+        "    boundary conditions = {} {} {}", boundary_conditions[0], boundary_conditions[1],
+        boundary_conditions[2] ) );
+    parameter_log.emplace_back( fmt::format( "    lattice constant     = {} Angstrom", lattice_constant ) );
     parameter_log.emplace_back( fmt::format( "    Bravais lattice type: {}", bravais.lattice_type_str ) );
     Log( Log_Level::Debug, Log_Sender::IO,
          {
