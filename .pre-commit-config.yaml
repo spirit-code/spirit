@@ -9,7 +9,7 @@ repos:
         exclude:
           ^(?:core/test/catch.hpp$|ui-cpp/(?:|ui-imgui/|ui-qt/)thirdparty/)
   - repo: https://github.com/psf/black
-    rev: 22.10.0
+    rev: 26.3.1
     hooks:
       - id: black
         files: (core/python|tools)
