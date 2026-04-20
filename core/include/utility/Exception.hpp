@@ -69,10 +69,10 @@ public:
 
     ~Exception() noexcept override = default;
 
-    const Exception_Classifier classifier;
-    const Log_Level level;
+    Exception_Classifier classifier;
+    Log_Level level;
     const char * file;
-    const unsigned int line;
+    unsigned int line;
     const char * function;
 };
 

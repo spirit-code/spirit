@@ -77,8 +77,18 @@ try
     {
         std::rethrow_exception( std::current_exception() );
     }
-    catch( const Exception & ex )
+    catch( Exception & ex )
     {
+        const bool recoverable
+            = !( ex.classifier == Exception_Classifier::Unknown_Exception
+                 || ex.classifier == Exception_Classifier::System_not_Initialized
+                 || ex.classifier == Exception_Classifier::Simulated_domain_too_small
+                 || ex.classifier == Exception_Classifier::CUDA_Error || int( ex.level ) <= 1 );
+
+        // Promote the log level if the exception is not recoverable. This ensures that the traceback is shown.
+        if( !recoverable )
+            ex.level = std::min( ex.level, Log_Level::Severe );
+
         Log( ex.level, Log_Sender::API, "-----------------------------------------------------", idx_image, idx_chain );
         std::string str_exception;
         if( int( ex.level ) > 1 )
@@ -96,10 +106,7 @@ try
         Log( ex.level, Log_Sender::API, "-----------------------------------------------------", idx_image, idx_chain );
 
         // Check if the exception was recoverable
-        if( ex.classifier == Exception_Classifier::Unknown_Exception
-            || ex.classifier == Exception_Classifier::System_not_Initialized
-            || ex.classifier == Exception_Classifier::Simulated_domain_too_small
-            || ex.classifier == Exception_Classifier::CUDA_Error || int( ex.level ) <= 1 )
+        if( !recoverable )
         {
             Log( Log_Level::Severe, Log_Sender::API, "TERMINATING!", idx_image, idx_chain );
             Log.Append_to_File();
