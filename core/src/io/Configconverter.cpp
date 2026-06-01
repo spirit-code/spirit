@@ -1451,7 +1451,7 @@ auto Config( const std::string & config_file_name ) -> toml::table
                 { "mc", detail::Parameters_Method_MC( config_file_name, defaults ) },
                 { "mmf", detail::Parameters_Method_MMF( config_file_name, defaults ) },
                 { "ema", detail::Parameters_Method_EMA( config_file_name, defaults ) },
-                { "gneb", detail::Parameters_Method_LLG( config_file_name, defaults ) },
+                { "gneb", detail::Parameters_Method_GNEB( config_file_name, defaults ) },
           } },
     };
 
