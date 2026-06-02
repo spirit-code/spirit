@@ -159,10 +159,6 @@ struct Method_LLG
                                                         { fv += v1 + v2.cross( n ); } ) );
                         break;
                     }
-                    default:
-                    {
-                        // std::unreachable();  // This should be unreachable if all the other checks work
-                    }
                 }
             }
 

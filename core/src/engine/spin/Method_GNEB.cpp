@@ -569,71 +569,74 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
         {
             try
             {
-                switch( IO::VF_FileFormat format = this->chain->gneb_parameters->output_vf_filetype )
+                [&]
                 {
-                    case IO::VF_FileFormat::OVF_BIN:
-                    case IO::VF_FileFormat::OVF_BIN4:
-                    case IO::VF_FileFormat::OVF_BIN8:
-                    case IO::VF_FileFormat::OVF_TEXT:
-                    case IO::VF_FileFormat::OVF_CSV:
+                    const IO::VF_FileFormat format = this->chain->gneb_parameters->output_vf_filetype;
+                    switch( format )
                     {
-                        // File name
-                        std::string chainFile = preChainFile + suffix + ".ovf";
-
-                        // Chain
-                        std::string output_comment_base = fmt::format(
-                            "{} simulation ({} solver)\n"
-                            "# Desc:      Iteration: {}\n"
-                            "# Desc:      Maximum torque: {}",
-                            this->Name(), this->SolverFullName(), iteration, this->max_torque );
-
-                        // write/append the first image
-                        auto segment = IO::OVF_Segment( this->chain->images[0]->hamiltonian->get_geometry() );
+                        case IO::VF_FileFormat::OVF_BIN: [[fallthrough]];
+                        case IO::VF_FileFormat::OVF_BIN4: [[fallthrough]];
+                        case IO::VF_FileFormat::OVF_BIN8: [[fallthrough]];
+                        case IO::VF_FileFormat::OVF_TEXT: [[fallthrough]];
+                        case IO::VF_FileFormat::OVF_CSV:
                         {
-                            std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
-                            segment.title     = strdup( title.c_str() );
-                            std::string output_comment
-                                = fmt::format( "{}\n# Desc: Image {} of {}", output_comment_base, 0, chain->noi );
-                            segment.comment     = strdup( output_comment.c_str() );
-                            segment.valuedim    = IO::Spin::State::valuedim;
-                            segment.valuelabels = strdup( IO::Spin::State::valuelabels.data() );
-                            segment.valueunits  = strdup( IO::Spin::State::valueunits.data() );
-                            const auto & spins  = this->chain->images[0]->state->spin;
-                            IO::OVF_File( chainFile )
-                                .write_segment( segment, spins[0].data(), static_cast<int>( format ) );
+                            // File name
+                            std::string chainFile = preChainFile + suffix + ".ovf";
+
+                            // Chain
+                            std::string output_comment_base = fmt::format(
+                                "{} simulation ({} solver)\n"
+                                "# Desc:      Iteration: {}\n"
+                                "# Desc:      Maximum torque: {}",
+                                this->Name(), this->SolverFullName(), iteration, this->max_torque );
+
+                            // write/append the first image
+                            auto segment = IO::OVF_Segment( this->chain->images[0]->hamiltonian->get_geometry() );
+                            {
+                                std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                                segment.title     = strdup( title.c_str() );
+                                std::string output_comment
+                                    = fmt::format( "{}\n# Desc: Image {} of {}", output_comment_base, 0, chain->noi );
+                                segment.comment     = strdup( output_comment.c_str() );
+                                segment.valuedim    = IO::Spin::State::valuedim;
+                                segment.valuelabels = strdup( IO::Spin::State::valuelabels.data() );
+                                segment.valueunits  = strdup( IO::Spin::State::valueunits.data() );
+                                const auto & spins  = this->chain->images[0]->state->spin;
+                                IO::OVF_File( chainFile )
+                                    .write_segment( segment, spins[0].data(), static_cast<int>( format ) );
+                            }
+                            // Append all the others
+                            for( int i = 1; i < this->chain->noi; i++ )
+                            {
+                                const auto & spins = this->chain->images[i]->state->spin;
+                                std::string output_comment
+                                    = fmt::format( "{}\n# Desc: Image {} of {}", output_comment_base, i, chain->noi );
+                                segment.comment = strdup( output_comment.c_str() );
+                                IO::OVF_File( chainFile )
+                                    .append_segment( segment, spins[0].data(), static_cast<int>( format ) );
+                            }
+                            return;
                         }
-                        // Append all the others
-                        for( int i = 1; i < this->chain->noi; i++ )
+                        case IO::VF_FileFormat::VTK_HDF:
                         {
-                            const auto & spins = this->chain->images[i]->state->spin;
-                            std::string output_comment
-                                = fmt::format( "{}\n# Desc: Image {} of {}", output_comment_base, i, chain->noi );
-                            segment.comment = strdup( output_comment.c_str() );
-                            IO::OVF_File( chainFile )
-                                .append_segment( segment, spins[0].data(), static_cast<int>( format ) );
+                            spirit_throw(
+                                Exception_Classifier::Not_Implemented, Log_Level::Error,
+                                "Cannot write chain data: Append not implemented for VTKHDF format!" );
                         }
-                        break;
+                        case IO::VF_FileFormat::VTK_XML_BIN: [[fallthrough]];
+                        case IO::VF_FileFormat::VTK_XML_TEXT:
+                        {
+                            spirit_throw(
+                                Exception_Classifier::Not_Implemented, Log_Level::Error,
+                                "Cannot write chain data: Append not implemented for VTK format!" );
+                        }
                     }
-                    case IO::VF_FileFormat::VTK_HDF:
-                    {
-                        spirit_throw(
-                            Exception_Classifier::Not_Implemented, Log_Level::Error,
-                            "Cannot write chain data: Append not implemented for VTKHDF format!" );
-                    }
-                    case IO::VF_FileFormat::VTK_XML_BIN:
-                    case IO::VF_FileFormat::VTK_XML_TEXT:
-                    {
-                        spirit_throw(
-                            Exception_Classifier::Not_Implemented, Log_Level::Error,
-                            "Cannot write chain data: Append not implemented for VTK format!" );
-                    }
-                    default:
-                        spirit_throw(
-                            Exception_Classifier::Not_Implemented, Log_Level::Error,
-                            fmt::format(
-                                "\"writeOutputConfiguration()\" not implemented for file format: {}",
-                                Enum::name( format ) ) );
-                }
+                    spirit_throw(
+                        Exception_Classifier::Not_Implemented, Log_Level::Error,
+                        fmt::format(
+                            "\"writeOutputConfiguration()\" not implemented for file format: {}",
+                            Enum::name( format ) ) );
+                }();
             }
             catch( ... )
             {

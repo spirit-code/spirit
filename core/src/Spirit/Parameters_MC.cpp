@@ -166,20 +166,23 @@ try
     {
         std::scoped_lock _{ *image };
 
-        switch( const auto step = params->step )
+        image->mc_parameters->metropolis_step = [&]
         {
-            case MC_Metropolis_Step_Spin_Cone:
-            case MC_Metropolis_Step_Spin_Sphere:
-            case MC_Metropolis_Step_Spin_Semi_Classical: //
-                image->mc_parameters->metropolis_step = static_cast<Data::Metropolis_Step>( step );
-                break;
-            default:
-                Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
-                     fmt::format(
-                         "Got unknown Metropolis step '{}'! Current Metropolis step is '{}'", step,
-                         Enum::name( image->mc_parameters->metropolis_step ) ),
-                     idx_image, idx_chain );
-        }
+            const auto step = params->step;
+            switch( step )
+            {
+                case MC_Metropolis_Step_Spin_Cone: [[fallthrough]];
+                case MC_Metropolis_Step_Spin_Sphere: [[fallthrough]];
+                case MC_Metropolis_Step_Spin_Semi_Classical: //
+                    return static_cast<Data::Metropolis_Step>( step );
+            }
+            Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+                 fmt::format(
+                     "Got unknown Metropolis step '{}'! Current Metropolis step is '{}'", step,
+                     Enum::name( image->mc_parameters->metropolis_step ) ),
+                 idx_image, idx_chain );
+            return image->mc_parameters->metropolis_step;
+        }();
 
         image->mc_parameters->metropolis_cone_angle    = params->cone_angle;
         image->mc_parameters->metropolis_cone_adaptive = params->use_adaptive_cone;

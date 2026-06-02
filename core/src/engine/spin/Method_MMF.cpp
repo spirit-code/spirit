@@ -477,71 +477,73 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
                 std::string output_comment = fmt::format(
                     "{} simulation ({} solver)\n# Desc:      Iteration: {}\n# Desc:      Maximum torque: {}",
                     this->Name(), this->SolverFullName(), iteration, this->max_torque );
-
-                // File format
-                switch( IO::VF_FileFormat format = sys.llg_parameters->output_vf_filetype )
+                [&]
                 {
-                    case IO::VF_FileFormat::OVF_BIN:
-                    case IO::VF_FileFormat::OVF_BIN4:
-                    case IO::VF_FileFormat::OVF_BIN8:
-                    case IO::VF_FileFormat::OVF_TEXT:
-                    case IO::VF_FileFormat::OVF_CSV:
+                    // File format
+                    const IO::VF_FileFormat format = sys.llg_parameters->output_vf_filetype;
+                    switch( format )
                     {
-                        // Spin Configuration
-                        auto & system_state = *sys.state;
-                        auto segment        = IO::OVF_Segment( sys.hamiltonian->get_geometry() );
-                        std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
-                        segment.title       = strdup( title.c_str() );
-                        segment.comment     = strdup( output_comment.c_str() );
-                        segment.valuedim    = IO::Spin::State::valuedim;
-                        segment.valuelabels = strdup( IO::Spin::State::valuelabels.data() );
-                        segment.valueunits  = strdup( IO::Spin::State::valueunits.data() );
+                        case IO::VF_FileFormat::OVF_BIN: [[fallthrough]];
+                        case IO::VF_FileFormat::OVF_BIN4: [[fallthrough]];
+                        case IO::VF_FileFormat::OVF_BIN8: [[fallthrough]];
+                        case IO::VF_FileFormat::OVF_TEXT: [[fallthrough]];
+                        case IO::VF_FileFormat::OVF_CSV:
+                        {
+                            // Spin Configuration
+                            auto & system_state = *sys.state;
+                            auto segment        = IO::OVF_Segment( sys.hamiltonian->get_geometry() );
+                            std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                            segment.title       = strdup( title.c_str() );
+                            segment.comment     = strdup( output_comment.c_str() );
+                            segment.valuedim    = IO::Spin::State::valuedim;
+                            segment.valuelabels = strdup( IO::Spin::State::valuelabels.data() );
+                            segment.valueunits  = strdup( IO::Spin::State::valueunits.data() );
 
-                        const IO::Spin::State::Buffer buffer( system_state );
-                        if( append )
-                            IO::OVF_File( spinsFile + ".ovf" )
-                                .append_segment( segment, buffer.data(), static_cast<int>( format ) );
-                        else
-                            IO::OVF_File( spinsFile + ".ovf" )
-                                .write_segment( segment, buffer.data(), static_cast<int>( format ) );
-                        break;
+                            const IO::Spin::State::Buffer buffer( system_state );
+                            if( append )
+                                IO::OVF_File( spinsFile + ".ovf" )
+                                    .append_segment( segment, buffer.data(), static_cast<int>( format ) );
+                            else
+                                IO::OVF_File( spinsFile + ".ovf" )
+                                    .write_segment( segment, buffer.data(), static_cast<int>( format ) );
+                            return;
+                        }
+                        case IO::VF_FileFormat::VTK_HDF:
+                        {
+                            // TODO: store this somewhere (e.g. with the method), because creating it is fairly expensive
+                            IO::VTK::UnstructuredGrid vtk_geometry( sys.hamiltonian->get_geometry() );
+                            if( append )
+                                spirit_throw(
+                                    Exception_Classifier::Not_Implemented, Log_Level::Error,
+                                    "Append not implemented for VTKHDF format!" );
+                            else
+                                IO::HDF5::write_fields(
+                                    spinsFile + ".vtkhdf", vtk_geometry,
+                                    { IO::VTK::FieldDescriptor{ "spins", &get<Field::Spin>( *sys.state ) } } );
+                            return;
+                        }
+                        case IO::VF_FileFormat::VTK_XML_TEXT: [[fallthrough]];
+                        case IO::VF_FileFormat::VTK_XML_BIN:
+                        {
+                            // TODO: store this somewhere (e.g. with the method), because creating it is fairly expensive
+                            IO::VTK::UnstructuredGrid vtk_geometry( sys.hamiltonian->get_geometry() );
+                            if( append )
+                                spirit_throw(
+                                    Exception_Classifier::Not_Implemented, Log_Level::Error,
+                                    "Append not implemented for VTK format!" );
+                            else
+                                IO::XML::write_fields(
+                                    spinsFile + ".vtu", vtk_geometry, format,
+                                    { IO::VTK::FieldDescriptor{ "spins", &get<Field::Spin>( *sys.state ) } } );
+                            return;
+                        }
                     }
-                    case IO::VF_FileFormat::VTK_HDF:
-                    {
-                        // TODO: store this somewhere (e.g. with the method), because creating it is fairly expensive
-                        IO::VTK::UnstructuredGrid vtk_geometry( sys.hamiltonian->get_geometry() );
-                        if( append )
-                            spirit_throw(
-                                Exception_Classifier::Not_Implemented, Log_Level::Error,
-                                "Append not implemented for VTKHDF format!" );
-                        else
-                            IO::HDF5::write_fields(
-                                spinsFile + ".vtkhdf", vtk_geometry,
-                                { IO::VTK::FieldDescriptor{ "spins", &get<Field::Spin>( *sys.state ) } } );
-                        break;
-                    }
-                    case IO::VF_FileFormat::VTK_XML_TEXT:
-                    case IO::VF_FileFormat::VTK_XML_BIN:
-                    {
-                        // TODO: store this somewhere (e.g. with the method), because creating it is fairly expensive
-                        IO::VTK::UnstructuredGrid vtk_geometry( sys.hamiltonian->get_geometry() );
-                        if( append )
-                            spirit_throw(
-                                Exception_Classifier::Not_Implemented, Log_Level::Error,
-                                "Append not implemented for VTK format!" );
-                        else
-                            IO::XML::write_fields(
-                                spinsFile + ".vtu", vtk_geometry, format,
-                                { IO::VTK::FieldDescriptor{ "spins", &get<Field::Spin>( *sys.state ) } } );
-                        break;
-                    }
-                    default:
-                        spirit_throw(
-                            Exception_Classifier::Not_Implemented, Log_Level::Error,
-                            fmt::format(
-                                "\"writeOutputConfiguration()\" not implemented for file format: {}",
-                                Enum::name( format ) ) );
-                }
+                    spirit_throw(
+                        Exception_Classifier::Not_Implemented, Log_Level::Error,
+                        fmt::format(
+                            "\"writeOutputConfiguration()\" not implemented for file format: {}",
+                            Enum::name( format ) ) );
+                }();
             }
             catch( ... )
             {

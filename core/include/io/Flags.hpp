@@ -26,8 +26,8 @@ constexpr std::string_view name( Flag value ) noexcept
         case Flag::Contributions: return "Contributions";
         case Flag::Normalize_by_nos: return "Normalize_by_nos";
         case Flag::Readability: return "Readability";
-        default: return "Mixed";
     }
+    return "Mixed";
 }
 
 // clang-format off

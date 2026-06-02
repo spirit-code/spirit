@@ -118,13 +118,11 @@ void trial_spin( const int idx, StateType & state, Hamiltonian & hamiltonian, Sh
                     shared.distribution, shared.parameters_mc.prng,
                     /*distribution_int=*/std::uniform_int_distribution<int>( 0, geometry.spin_qn[ispin] ),
                     /*axis=*/hamiltonian.Spin_Gradient_Local( ispin, state ).normalized() );
-            default:
-                spirit_throw(
-                    Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Error,
-                    fmt::format(
-                        "Unsupported metropolis step '{}'!",
-                        Utility::Enum::name( shared.parameters_mc.metropolis_step ) ) );
         };
+        spirit_throw(
+            Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Error,
+            fmt::format(
+                "Unsupported metropolis step '{}'!", Utility::Enum::name( shared.parameters_mc.metropolis_step ) ) );
     }();
 
     // Energy difference of configurations with and without displacement
@@ -239,13 +237,12 @@ void trial_spin_magnetization_constrained(
                     shared.distribution, shared.parameters_mc.prng, spin_i_pre, shared.cone_angle );
             case Data::Metropolis_Step::SPHERE: // Sample the entire unit sphere
                 return Metropolis::step_sphere( shared.distribution, shared.parameters_mc.prng );
-            default:
-                spirit_throw(
-                    Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Error,
-                    fmt::format(
-                        "Unsupported metropolis step '{}'!",
-                        Utility::Enum::name( shared.parameters_mc.metropolis_step ) ) );
+            case Data::Metropolis_Step::SEMI_CLASSICAL:;
         };
+        spirit_throw(
+            Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Error,
+            fmt::format(
+                "Unsupported metropolis step '{}'!", Utility::Enum::name( shared.parameters_mc.metropolis_step ) ) );
     }();
 
     // calculate compensation spin

@@ -264,12 +264,13 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                     this->Name(), this->SolverFullName(), iteration, this->max_torque );
 
                 // File format
-                switch( IO::VF_FileFormat format = sys.llg_parameters->output_vf_filetype )
+                const IO::VF_FileFormat format = sys.llg_parameters->output_vf_filetype;
+                switch( format )
                 {
-                    case IO::VF_FileFormat::OVF_BIN:
-                    case IO::VF_FileFormat::OVF_BIN4:
-                    case IO::VF_FileFormat::OVF_BIN8:
-                    case IO::VF_FileFormat::OVF_TEXT:
+                    case IO::VF_FileFormat::OVF_BIN: [[fallthrough]];
+                    case IO::VF_FileFormat::OVF_BIN4: [[fallthrough]];
+                    case IO::VF_FileFormat::OVF_BIN8: [[fallthrough]];
+                    case IO::VF_FileFormat::OVF_TEXT: [[fallthrough]];
                     case IO::VF_FileFormat::OVF_CSV:
                     {
                         // Spin Configuration
@@ -305,7 +306,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                                 { IO::VTK::FieldDescriptor{ "spins", &get<Field::Spin>( *sys.state ) } } );
                         break;
                     }
-                    case IO::VF_FileFormat::VTK_XML_TEXT:
+                    case IO::VF_FileFormat::VTK_XML_TEXT: [[fallthrough]];
                     case IO::VF_FileFormat::VTK_XML_BIN:
                     {
                         // TODO: store this somewhere (e.g. with the method), because creating it is fairly expensive
@@ -320,13 +321,11 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                                 { IO::VTK::FieldDescriptor{ "spins", &get<Field::Spin>( *sys.state ) } } );
                         break;
                     }
-                    default:
-                        spirit_throw(
-                            Exception_Classifier::Not_Implemented, Log_Level::Error,
-                            fmt::format(
-                                "\"writeOutputConfiguration()\" not implemented for file format: {}",
-                                Enum::name( format ) ) );
                 }
+                spirit_throw(
+                    Exception_Classifier::Not_Implemented, Log_Level::Error,
+                    fmt::format(
+                        "\"writeOutputConfiguration()\" not implemented for file format: {}", Enum::name( format ) ) );
             }
             catch( ... )
             {

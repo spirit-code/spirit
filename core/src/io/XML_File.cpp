@@ -218,11 +218,16 @@ void write_fields(
     {
         case VF_FileFormat::VTK_XML_BIN: return write_fields_impl( outfile, geometry, fields, BinaryEncoder{} );
         case VF_FileFormat::VTK_XML_TEXT: return write_fields_impl( outfile, geometry, fields, AsciiEncoder{} );
-        default:
-            spirit_throw(
-                Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Error,
-                fmt::format( "Invalid format {} passed to XML::write_fields()", Enum::name( format ) ) );
+        case VF_FileFormat::OVF_BIN: [[fallthrough]];
+        case VF_FileFormat::OVF_BIN4: [[fallthrough]];
+        case VF_FileFormat::OVF_BIN8: [[fallthrough]];
+        case VF_FileFormat::OVF_TEXT: [[fallthrough]];
+        case VF_FileFormat::OVF_CSV: [[fallthrough]];
+        case VF_FileFormat::VTK_HDF:;
     }
+    spirit_throw(
+        Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Error,
+        fmt::format( "Invalid format {} passed to XML::write_fields()", Enum::name( format ) ) );
 };
 
 } // namespace XML

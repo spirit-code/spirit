@@ -121,41 +121,44 @@ try
 
         // Helper variables
         const auto & geometry = image->hamiltonian->get_geometry();
-        auto fileformat       = (IO::VF_FileFormat)format;
-
-        switch( fileformat )
+        [&, &image = image]
         {
-            case IO::VF_FileFormat::OVF_BIN:
-            case IO::VF_FileFormat::OVF_BIN4:
-            case IO::VF_FileFormat::OVF_BIN8:
-            case IO::VF_FileFormat::OVF_TEXT:
-            case IO::VF_FileFormat::OVF_CSV:
+            const auto fileformat = (IO::VF_FileFormat)format;
+            switch( fileformat )
             {
-                auto segment = IO::OVF_Segment( image->hamiltonian->get_geometry() );
+                case IO::VF_FileFormat::OVF_BIN: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_BIN4: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_BIN8: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_TEXT: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_CSV:
+                {
+                    auto segment = IO::OVF_Segment( image->hamiltonian->get_geometry() );
 
-                std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
-                segment.title       = strdup( title.c_str() );
-                segment.comment     = strdup( comment );
-                segment.valuedim    = 3;
-                segment.valuelabels = strdup( "position_x position_y position_z" );
-                segment.valueunits  = strdup( "none none none" );
+                    std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                    segment.title       = strdup( title.c_str() );
+                    segment.comment     = strdup( comment );
+                    segment.valuedim    = 3;
+                    segment.valuelabels = strdup( "position_x position_y position_z" );
+                    segment.valueunits  = strdup( "none none none" );
 
-                // Open and write
-                IO::OVF_File( filename ).write_segment( segment, geometry.positions[0].data(), format );
+                    // Open and write
+                    IO::OVF_File( filename ).write_segment( segment, geometry.positions[0].data(), format );
 
-                Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                     fmt::format( "Wrote positions to file \"{}\" in {} format", filename, Enum::name( fileformat ) ),
-                     idx_image, idx_chain );
+                    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                         fmt::format(
+                             "Wrote positions to file \"{}\" in {} format", filename, Enum::name( fileformat ) ),
+                         idx_image, idx_chain );
 
-                break;
+                    return;
+                }
+                case IO::VF_FileFormat::VTK_HDF: [[fallthrough]];
+                case IO::VF_FileFormat::VTK_XML_BIN: [[fallthrough]];
+                case IO::VF_FileFormat::VTK_XML_TEXT:;
             }
-            default:
-            {
-                spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    fmt::format( "Invalid file format index {}", format ) );
-            }
-        }
+            spirit_throw(
+                Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                fmt::format( "Invalid file format index {}", format ) );
+        }();
     }
     catch( ... )
     {
@@ -319,81 +322,82 @@ try
 
     try
     {
-        auto fileformat = static_cast<IO::VF_FileFormat>( format );
-        switch( fileformat )
+        const auto fileformat = static_cast<IO::VF_FileFormat>( format );
+        [&, &image = image]
         {
-            case IO::VF_FileFormat::OVF_BIN:
-            case IO::VF_FileFormat::OVF_BIN4:
-            case IO::VF_FileFormat::OVF_BIN8:
-            case IO::VF_FileFormat::OVF_TEXT:
-            case IO::VF_FileFormat::OVF_CSV:
+            switch( fileformat )
             {
-                if( Get_Extension( filename ) != ".ovf" )
-                    Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                         fmt::format(
-                             "The file \"{}\" is written in OVF format but has different extension. "
-                             "It is recommend to use the appropriate \".ovf\" extension",
-                             filename ),
-                         idx_image, idx_chain );
+                case IO::VF_FileFormat::OVF_BIN: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_BIN4: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_BIN8: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_TEXT: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_CSV:
+                {
+                    if( Get_Extension( filename ) != ".ovf" )
+                        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                             fmt::format(
+                                 "The file \"{}\" is written in OVF format but has different extension. "
+                                 "It is recommend to use the appropriate \".ovf\" extension",
+                                 filename ),
+                             idx_image, idx_chain );
 
-                auto segment              = IO::OVF_Segment( image->hamiltonian->get_geometry() );
-                const auto & system_state = *image->state;
+                    auto segment              = IO::OVF_Segment( image->hamiltonian->get_geometry() );
+                    const auto & system_state = *image->state;
 
-                std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
-                segment.title       = strdup( title.c_str() );
-                segment.comment     = strdup( comment );
-                segment.valuedim    = IO::State::valuedim;
-                segment.valuelabels = strdup( IO::State::valuelabels.data() );
-                segment.valueunits  = strdup( IO::State::valueunits.data() );
+                    std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                    segment.title       = strdup( title.c_str() );
+                    segment.comment     = strdup( comment );
+                    segment.valuedim    = IO::State::valuedim;
+                    segment.valuelabels = strdup( IO::State::valuelabels.data() );
+                    segment.valueunits  = strdup( IO::State::valueunits.data() );
 
-                // Open and write
-                const auto buffer = IO::State::Buffer( system_state );
-                IO::OVF_File( filename ).write_segment( segment, buffer.data(), format );
-                break;
+                    // Open and write
+                    const auto buffer = IO::State::Buffer( system_state );
+                    IO::OVF_File( filename ).write_segment( segment, buffer.data(), format );
+                    return;
+                }
+                case IO::VF_FileFormat::VTK_HDF:
+                {
+                    if( Get_Extension( filename ) != ".vtkhdf" )
+                        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                             fmt::format(
+                                 "The file \"{}\" is written in VTKHDF format but has different extension. "
+                                 "It is recommend to use the appropriate \".vtkhdf\" extension",
+                                 filename ),
+                             idx_image, idx_chain );
+
+                    IO::VTK::UnstructuredGrid vtk_geometry( image->hamiltonian->get_geometry() );
+                    const auto & system_state = *image->state;
+
+                    IO::HDF5::write_fields(
+                        filename, vtk_geometry, { IO::VTK::FieldDescriptor{ "spins", &system_state.spin } } );
+                    return;
+                }
+                case IO::VF_FileFormat::VTK_XML_TEXT: [[fallthrough]];
+                case IO::VF_FileFormat::VTK_XML_BIN:
+                {
+                    if( Get_Extension( filename ) != ".vtu" )
+                        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                             fmt::format(
+                                 "The file \"{}\" is written in VTK (UnstructuredGrid) format but has "
+                                 "different extension. "
+                                 "It is recommend to use the appropriate \".vtu\" extension",
+                                 filename ),
+                             idx_image, idx_chain );
+
+                    IO::VTK::UnstructuredGrid vtk_geometry( image->hamiltonian->get_geometry() );
+                    const auto & system_state = *image->state;
+
+                    IO::XML::write_fields(
+                        filename, vtk_geometry, fileformat,
+                        { IO::VTK::FieldDescriptor{ "spins", &get<Field::Spin>( system_state ) } } );
+                    return;
+                }
+                    spirit_throw(
+                        Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                        fmt::format( "Invalid file format index {}", format ) );
             }
-            case IO::VF_FileFormat::VTK_HDF:
-            {
-                if( Get_Extension( filename ) != ".vtkhdf" )
-                    Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                         fmt::format(
-                             "The file \"{}\" is written in VTKHDF format but has different extension. "
-                             "It is recommend to use the appropriate \".vtkhdf\" extension",
-                             filename ),
-                         idx_image, idx_chain );
-
-                IO::VTK::UnstructuredGrid vtk_geometry( image->hamiltonian->get_geometry() );
-                const auto & system_state = *image->state;
-
-                IO::HDF5::write_fields(
-                    filename, vtk_geometry, { IO::VTK::FieldDescriptor{ "spins", &system_state.spin } } );
-                break;
-            }
-            case IO::VF_FileFormat::VTK_XML_TEXT:
-            case IO::VF_FileFormat::VTK_XML_BIN:
-            {
-                if( Get_Extension( filename ) != ".vtu" )
-                    Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                         fmt::format(
-                             "The file \"{}\" is written in VTK (UnstructuredGrid) format but has different extension. "
-                             "It is recommend to use the appropriate \".vtu\" extension",
-                             filename ),
-                         idx_image, idx_chain );
-
-                IO::VTK::UnstructuredGrid vtk_geometry( image->hamiltonian->get_geometry() );
-                const auto & system_state = *image->state;
-
-                IO::XML::write_fields(
-                    filename, vtk_geometry, fileformat,
-                    { IO::VTK::FieldDescriptor{ "spins", &get<Field::Spin>( system_state ) } } );
-                break;
-            }
-            default:
-            {
-                spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    fmt::format( "Invalid file format index {}", format ) );
-            }
-        }
+        }();
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
              fmt::format( "Wrote spins to file \"{}\" in {} format", filename, Enum::name( fileformat ) ), idx_image,
              idx_chain );
@@ -422,62 +426,63 @@ try
 
     try
     {
-        auto fileformat = static_cast<IO::VF_FileFormat>( format );
-        switch( fileformat )
-        {
-            case IO::VF_FileFormat::OVF_BIN:
-            case IO::VF_FileFormat::OVF_BIN4:
-            case IO::VF_FileFormat::OVF_BIN8:
-            case IO::VF_FileFormat::OVF_TEXT:
-            case IO::VF_FileFormat::OVF_CSV:
-            {
-                // Open
-                auto file = IO::OVF_File( filename );
 
-                // Check if the file was OVF
-                if( file.found && !file.is_ovf )
+        const auto fileformat = static_cast<IO::VF_FileFormat>( format );
+        [&, &image = image]
+        {
+            switch( fileformat )
+            {
+                case IO::VF_FileFormat::OVF_BIN: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_BIN4: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_BIN8: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_TEXT: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_CSV:
+                {
+                    // Open
+                    auto file = IO::OVF_File( filename );
+
+                    // Check if the file was OVF
+                    if( file.found && !file.is_ovf )
+                    {
+                        spirit_throw(
+                            Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                            fmt::format( "Cannot append to non-OVF file \"{}\"", filename ) );
+                    }
+
+                    auto segment              = IO::OVF_Segment( image->hamiltonian->get_geometry() );
+                    const auto & system_state = *image->state;
+
+                    std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                    segment.title       = strdup( title.c_str() );
+                    segment.comment     = strdup( comment );
+                    segment.valuedim    = IO::State::valuedim;
+                    segment.valuelabels = strdup( IO::State::valuelabels.data() );
+                    segment.valueunits  = strdup( IO::State::valueunits.data() );
+
+                    // Open and write
+                    const auto buffer = IO::State::Buffer( system_state );
+                    IO::OVF_File( filename ).write_segment( segment, buffer.data(), format );
+
+                    return;
+                }
+                case IO::VF_FileFormat::VTK_HDF:
                 {
                     spirit_throw(
-                        Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                        fmt::format( "Cannot append to non-OVF file \"{}\"", filename ) );
+                        Utility::Exception_Classifier::Not_Implemented, Utility::Log_Level::Error,
+                        "Append not implemented for VTKHDF format!" );
                 }
-
-                auto segment              = IO::OVF_Segment( image->hamiltonian->get_geometry() );
-                const auto & system_state = *image->state;
-
-                std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
-                segment.title       = strdup( title.c_str() );
-                segment.comment     = strdup( comment );
-                segment.valuedim    = IO::State::valuedim;
-                segment.valuelabels = strdup( IO::State::valuelabels.data() );
-                segment.valueunits  = strdup( IO::State::valueunits.data() );
-
-                // Open and write
-                const auto buffer = IO::State::Buffer( system_state );
-                IO::OVF_File( filename ).write_segment( segment, buffer.data(), format );
-
-                break;
+                case IO::VF_FileFormat::VTK_XML_BIN:
+                case IO::VF_FileFormat::VTK_XML_TEXT:
+                {
+                    spirit_throw(
+                        Utility::Exception_Classifier::Not_Implemented, Utility::Log_Level::Error,
+                        "Cannot write chain data: Append not implemented for VTK format!" );
+                }
             }
-            case IO::VF_FileFormat::VTK_HDF:
-            {
-                spirit_throw(
-                    Utility::Exception_Classifier::Not_Implemented, Utility::Log_Level::Error,
-                    "Append not implemented for VTKHDF format!" );
-            }
-            case IO::VF_FileFormat::VTK_XML_BIN:
-            case IO::VF_FileFormat::VTK_XML_TEXT:
-            {
-                spirit_throw(
-                    Utility::Exception_Classifier::Not_Implemented, Utility::Log_Level::Error,
-                    "Cannot write chain data: Append not implemented for VTK format!" );
-            }
-            default:
-            {
-                spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    fmt::format( "Invalid file format index {}", format ) );
-            }
-        }
+            spirit_throw(
+                Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                fmt::format( "Invalid file format index {}", format ) );
+        }();
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
              fmt::format( "Appended spins to file \"{}\" in {} format", filename, Enum::name( fileformat ) ), idx_image,
              idx_chain );
@@ -726,53 +731,56 @@ try
     chain->lock();
     try
     {
-        auto fileformat = (IO::VF_FileFormat)format;
-
-        switch( fileformat )
+        const auto fileformat = static_cast<IO::VF_FileFormat>( format );
+        [&, &image = image, &chain = chain]
         {
-            case IO::VF_FileFormat::OVF_BIN:
-            case IO::VF_FileFormat::OVF_BIN4:
-            case IO::VF_FileFormat::OVF_BIN8:
-            case IO::VF_FileFormat::OVF_TEXT:
-            case IO::VF_FileFormat::OVF_CSV:
+            switch( fileformat )
             {
-                auto & images = chain->images;
-
-                // Open
-                auto file = IO::OVF_File( filename );
-
-                auto segment              = IO::OVF_Segment( image->hamiltonian->get_geometry() );
-                const auto & system_state = *image->state;
-
-                std::string title       = fmt::format( "SPIRIT Version {}", Utility::version_full );
-                segment.title           = strdup( title.c_str() );
-                std::string comment_str = "";
-                comment_str             = fmt::format( "Image {} of {}. {}", 1, chain->noi, comment );
-                segment.comment         = strdup( comment_str.c_str() );
-                segment.valuedim        = IO::State::valuedim;
-                segment.valuelabels     = strdup( IO::State::valuelabels.data() );
-                segment.valueunits      = strdup( IO::State::valueunits.data() );
-
-                // Open and write
-                const IO::State::Buffer buffer( system_state );
-                file.write_segment( segment, buffer.data(), format );
-
-                for( int i = 1; i < chain->noi; i++ )
+                case IO::VF_FileFormat::OVF_BIN: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_BIN4: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_BIN8: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_TEXT: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_CSV:
                 {
-                    comment_str     = fmt::format( "Image {} of {}. {}", i + 1, chain->noi, comment );
-                    segment.comment = strdup( comment_str.c_str() );
-                    file.append_segment( segment, IO::State::Buffer( *images[i]->state ).data(), int( fileformat ) );
-                }
+                    auto & images = chain->images;
 
-                break;
+                    // Open
+                    auto file = IO::OVF_File( filename );
+
+                    auto segment              = IO::OVF_Segment( image->hamiltonian->get_geometry() );
+                    const auto & system_state = *image->state;
+
+                    std::string title       = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                    segment.title           = strdup( title.c_str() );
+                    std::string comment_str = "";
+                    comment_str             = fmt::format( "Image {} of {}. {}", 1, chain->noi, comment );
+                    segment.comment         = strdup( comment_str.c_str() );
+                    segment.valuedim        = IO::State::valuedim;
+                    segment.valuelabels     = strdup( IO::State::valuelabels.data() );
+                    segment.valueunits      = strdup( IO::State::valueunits.data() );
+
+                    // Open and write
+                    const IO::State::Buffer buffer( system_state );
+                    file.write_segment( segment, buffer.data(), format );
+
+                    for( int i = 1; i < chain->noi; i++ )
+                    {
+                        comment_str     = fmt::format( "Image {} of {}. {}", i + 1, chain->noi, comment );
+                        segment.comment = strdup( comment_str.c_str() );
+                        file.append_segment(
+                            segment, IO::State::Buffer( *images[i]->state ).data(), int( fileformat ) );
+                    }
+
+                    return;
+                }
+                case IO::VF_FileFormat::VTK_HDF: [[fallthrough]];
+                case IO::VF_FileFormat::VTK_XML_BIN: [[fallthrough]];
+                case IO::VF_FileFormat::VTK_XML_TEXT:;
             }
-            default:
-            {
-                spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    fmt::format( "Invalid file format index {}", format ) );
-            }
-        }
+            spirit_throw(
+                Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                fmt::format( "Invalid file format index {}", format ) );
+        }();
 
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
              fmt::format( "Wrote chain to file \"{}\" in {} format", filename, Enum::name( fileformat ) ), idx_image,
@@ -801,57 +809,61 @@ try
     chain->lock();
     try
     {
-        auto fileformat = (IO::VF_FileFormat)format;
-        switch( fileformat )
+        const auto fileformat = (IO::VF_FileFormat)format;
+        [&, &image = image, &chain = chain]
         {
-            case IO::VF_FileFormat::OVF_BIN:
-            case IO::VF_FileFormat::OVF_BIN4:
-            case IO::VF_FileFormat::OVF_BIN8:
-            case IO::VF_FileFormat::OVF_TEXT:
-            case IO::VF_FileFormat::OVF_CSV:
+            switch( fileformat )
             {
-                // Open
-                auto file = IO::OVF_File( filename );
-
-                // Check if the file was OVF
-                if( file.found && !file.is_ovf )
+                case IO::VF_FileFormat::OVF_BIN:
+                case IO::VF_FileFormat::OVF_BIN4:
+                case IO::VF_FileFormat::OVF_BIN8:
+                case IO::VF_FileFormat::OVF_TEXT:
+                case IO::VF_FileFormat::OVF_CSV:
                 {
-                    spirit_throw(
-                        Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                        fmt::format( "Cannot append to non-OVF file \"{}\"", filename ) );
+                    // Open
+                    auto file = IO::OVF_File( filename );
+
+                    // Check if the file was OVF
+                    if( file.found && !file.is_ovf )
+                    {
+                        spirit_throw(
+                            Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                            fmt::format( "Cannot append to non-OVF file \"{}\"", filename ) );
+                    }
+
+                    auto segment        = IO::OVF_Segment( image->hamiltonian->get_geometry() );
+                    auto & system_state = *image->state;
+
+                    std::string title       = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                    segment.title           = strdup( title.c_str() );
+                    std::string comment_str = "";
+
+                    comment_str         = fmt::format( "Image {} of {}. {}", 0, chain->noi, comment );
+                    segment.comment     = strdup( comment_str.c_str() );
+                    segment.valuedim    = IO::State::valuedim;
+                    segment.valuelabels = strdup( IO::State::valuelabels.data() );
+                    segment.valueunits  = strdup( IO::State::valueunits.data() );
+
+                    // Write
+                    for( int i = 0; i < chain->noi; i++ )
+                    {
+                        comment_str     = fmt::format( "Image {} of {}. {}", i, chain->noi, comment );
+                        segment.comment = strdup( comment_str.c_str() );
+                        const IO::State::Buffer buffer( system_state );
+                        file.write_segment( segment, buffer.data(), int( fileformat ) );
+                    }
+
+                    return;
                 }
-
-                auto segment        = IO::OVF_Segment( image->hamiltonian->get_geometry() );
-                auto & system_state = *image->state;
-
-                std::string title       = fmt::format( "SPIRIT Version {}", Utility::version_full );
-                segment.title           = strdup( title.c_str() );
-                std::string comment_str = "";
-
-                comment_str         = fmt::format( "Image {} of {}. {}", 0, chain->noi, comment );
-                segment.comment     = strdup( comment_str.c_str() );
-                segment.valuedim    = IO::State::valuedim;
-                segment.valuelabels = strdup( IO::State::valuelabels.data() );
-                segment.valueunits  = strdup( IO::State::valueunits.data() );
-
-                // Write
-                for( int i = 0; i < chain->noi; i++ )
-                {
-                    comment_str     = fmt::format( "Image {} of {}. {}", i, chain->noi, comment );
-                    segment.comment = strdup( comment_str.c_str() );
-                    const IO::State::Buffer buffer( system_state );
-                    file.write_segment( segment, buffer.data(), int( fileformat ) );
-                }
-
-                break;
+                case IO::VF_FileFormat::VTK_HDF: [[fallthrough]];
+                case IO::VF_FileFormat::VTK_XML_BIN: [[fallthrough]];
+                case IO::VF_FileFormat::VTK_XML_TEXT:;
             }
-            default:
-            {
-                spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    fmt::format( "Invalid file format index {}", format ) );
-            }
-        }
+            spirit_throw(
+                Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                fmt::format( "Invalid file format index {}", format ) );
+        }();
+
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
              fmt::format( "Wrote chain to file \"{}\" in {} format", filename, Enum::name( fileformat ) ), idx_image,
              idx_chain );
@@ -948,52 +960,55 @@ try
                      filename ),
                  idx_image, idx_chain );
 
-        auto fileformat = (IO::VF_FileFormat)format;
-        switch( fileformat )
+        [&, &image = image]
         {
-            case IO::VF_FileFormat::OVF_BIN:
-            case IO::VF_FileFormat::OVF_BIN4:
-            case IO::VF_FileFormat::OVF_BIN8:
-            case IO::VF_FileFormat::OVF_TEXT:
-            case IO::VF_FileFormat::OVF_CSV:
+            const auto fileformat = (IO::VF_FileFormat)format;
+            switch( fileformat )
             {
-                auto segment = IO::OVF_Segment( image->hamiltonian->get_geometry() );
-
-                std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
-                segment.title       = strdup( title.c_str() );
-                std::string comment = fmt::format( "Energy per spin. Total={}meV", system.E.total );
-                for( auto & contribution : system.E.per_interaction )
-                    comment += fmt::format( ", {}={}meV", contribution.first, contribution.second );
-                segment.comment  = strdup( comment.c_str() );
-                segment.valuedim = 1 + system.E.per_interaction.size();
-
-                std::string valuelabels = "Total";
-                std::string valueunits  = "meV";
-                for( auto & pair : system.E.per_interaction )
+                case IO::VF_FileFormat::OVF_BIN: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_BIN4: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_BIN8: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_TEXT: [[fallthrough]];
+                case IO::VF_FileFormat::OVF_CSV:
                 {
-                    valuelabels += fmt::format( " {}", pair.first );
-                    valueunits += " meV";
+                    auto segment = IO::OVF_Segment( image->hamiltonian->get_geometry() );
+
+                    std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                    segment.title       = strdup( title.c_str() );
+                    std::string comment = fmt::format( "Energy per spin. Total={}meV", system.E.total );
+                    for( auto & contribution : system.E.per_interaction )
+                        comment += fmt::format( ", {}={}meV", contribution.first, contribution.second );
+                    segment.comment  = strdup( comment.c_str() );
+                    segment.valuedim = 1 + system.E.per_interaction.size();
+
+                    std::string valuelabels = "Total";
+                    std::string valueunits  = "meV";
+                    for( auto & pair : system.E.per_interaction )
+                    {
+                        valuelabels += fmt::format( " {}", pair.first );
+                        valueunits += " meV";
+                    }
+                    segment.valuelabels = strdup( valuelabels.c_str() );
+
+                    // Open
+                    auto file = IO::OVF_File( filename );
+                    // Write
+                    file.write_segment( segment, data.data(), format );
+
+                    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                         fmt::format( "Wrote spins to file \"{}\" in {} format", filename, Enum::name( fileformat ) ),
+                         idx_image, idx_chain );
+
+                    break;
                 }
-                segment.valuelabels = strdup( valuelabels.c_str() );
-
-                // Open
-                auto file = IO::OVF_File( filename );
-                // Write
-                file.write_segment( segment, data.data(), format );
-
-                Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                     fmt::format( "Wrote spins to file \"{}\" in {} format", filename, Enum::name( fileformat ) ),
-                     idx_image, idx_chain );
-
-                break;
+                case IO::VF_FileFormat::VTK_HDF: [[fallthrough]];
+                case IO::VF_FileFormat::VTK_XML_BIN: [[fallthrough]];
+                case IO::VF_FileFormat::VTK_XML_TEXT:;
             }
-            default:
-            {
-                spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    fmt::format( "Invalid file format index {}", format ) );
-            }
-        }
+            spirit_throw(
+                Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                fmt::format( "Invalid file format index {}", format ) );
+        }();
     }
     catch( ... )
     {
@@ -1212,78 +1227,83 @@ try
                      filename ),
                  idx_image, idx_chain );
 
-        auto fileformat = (IO::VF_FileFormat)format;
-        switch( fileformat )
+        [&, &image = image]
         {
-            case IO::VF_FileFormat::OVF_BIN:
-            case IO::VF_FileFormat::OVF_BIN4:
-            case IO::VF_FileFormat::OVF_BIN8:
-            case IO::VF_FileFormat::OVF_TEXT:
-            case IO::VF_FileFormat::OVF_CSV:
+            auto fileformat = (IO::VF_FileFormat)format;
+            switch( fileformat )
             {
-                auto segment      = IO::OVF_Segment( image->hamiltonian->get_geometry() );
-                std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
-                segment.title     = strdup( title.c_str() );
-
-                // Determine number of modes
-                int n_modes = 0;
-                for( int i = 0; i < image->modes.size(); i++ )
-                    if( image->modes[i].has_value() )
-                        ++n_modes;
-
-                // Open
-                auto file = IO::OVF_File( filename );
-
-                /////// Eigenspectrum
-                std::string comment_str = fmt::format( "{}\n# Desc: eigenspectrum of {} eigenmodes", comment, n_modes );
-                segment.comment         = strdup( comment_str.c_str() );
-                segment.valuedim        = 1;
-                segment.valuelabels     = strdup( "eigenvalue" );
-                segment.valueunits      = strdup( "meV" );
-                segment.meshunit        = strdup( "none" );
-                segment.n_cells[0]      = n_modes;
-                segment.n_cells[1]      = 1;
-                segment.n_cells[2]      = 1;
-                segment.N               = n_modes;
-                segment.step_size[0]    = 0;
-                segment.step_size[1]    = 0;
-                segment.step_size[2]    = 0;
-                segment.bounds_max[0]   = 0;
-                segment.bounds_max[1]   = 0;
-                segment.bounds_max[2]   = 0;
-
-                // Write
-                file.write_segment( segment, image->eigenvalues.data(), format );
-
-                /////// Eigenmodes
-                segment             = IO::OVF_Segment( image->hamiltonian->get_geometry() );
-                segment.valuedim    = 3;
-                segment.valuelabels = strdup( "mode_x mode_y mode_z" );
-                segment.valueunits  = strdup( "none none none" );
-                for( int i = 0; i < n_modes; i++ )
+                case IO::VF_FileFormat::OVF_BIN:
+                case IO::VF_FileFormat::OVF_BIN4:
+                case IO::VF_FileFormat::OVF_BIN8:
+                case IO::VF_FileFormat::OVF_TEXT:
+                case IO::VF_FileFormat::OVF_CSV:
                 {
-                    comment_str = fmt::format(
-                        "{}\n# Desc: eigenmode {}/{}, eigenvalue = {}", comment, i + 1, n_modes,
-                        image->eigenvalues[i] );
-                    segment.comment = strdup( comment_str.c_str() );
+                    auto segment      = IO::OVF_Segment( image->hamiltonian->get_geometry() );
+                    std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                    segment.title     = strdup( title.c_str() );
+
+                    // Determine number of modes
+                    int n_modes = 0;
+                    for( int i = 0; i < image->modes.size(); i++ )
+                        if( image->modes[i].has_value() )
+                            ++n_modes;
+
+                    // Open
+                    auto file = IO::OVF_File( filename );
+
+                    /////// Eigenspectrum
+                    std::string comment_str
+                        = fmt::format( "{}\n# Desc: eigenspectrum of {} eigenmodes", comment, n_modes );
+                    segment.comment       = strdup( comment_str.c_str() );
+                    segment.valuedim      = 1;
+                    segment.valuelabels   = strdup( "eigenvalue" );
+                    segment.valueunits    = strdup( "meV" );
+                    segment.meshunit      = strdup( "none" );
+                    segment.n_cells[0]    = n_modes;
+                    segment.n_cells[1]    = 1;
+                    segment.n_cells[2]    = 1;
+                    segment.N             = n_modes;
+                    segment.step_size[0]  = 0;
+                    segment.step_size[1]  = 0;
+                    segment.step_size[2]  = 0;
+                    segment.bounds_max[0] = 0;
+                    segment.bounds_max[1] = 0;
+                    segment.bounds_max[2] = 0;
 
                     // Write
-                    file.append_segment( segment, ( *image->modes[i] )[0].data(), format );
+                    file.write_segment( segment, image->eigenvalues.data(), format );
+
+                    /////// Eigenmodes
+                    segment             = IO::OVF_Segment( image->hamiltonian->get_geometry() );
+                    segment.valuedim    = 3;
+                    segment.valuelabels = strdup( "mode_x mode_y mode_z" );
+                    segment.valueunits  = strdup( "none none none" );
+                    for( int i = 0; i < n_modes; i++ )
+                    {
+                        comment_str = fmt::format(
+                            "{}\n# Desc: eigenmode {}/{}, eigenvalue = {}", comment, i + 1, n_modes,
+                            image->eigenvalues[i] );
+                        segment.comment = strdup( comment_str.c_str() );
+
+                        // Write
+                        file.append_segment( segment, ( *image->modes[i] )[0].data(), format );
+                    }
+
+                    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                         fmt::format(
+                             "Wrote eigenmodes to file \"{}\" in {} format", filename, Enum::name( fileformat ) ),
+                         idx_image, idx_chain );
+
+                    break;
                 }
-
-                Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                     fmt::format( "Wrote eigenmodes to file \"{}\" in {} format", filename, Enum::name( fileformat ) ),
-                     idx_image, idx_chain );
-
-                break;
+                case IO::VF_FileFormat::VTK_HDF: [[fallthrough]];
+                case IO::VF_FileFormat::VTK_XML_BIN: [[fallthrough]];
+                case IO::VF_FileFormat::VTK_XML_TEXT:;
             }
-            default:
-            {
-                spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    fmt::format( "Invalid file format index {}", format ) );
-            }
-        }
+            spirit_throw(
+                Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                fmt::format( "Invalid file format index {}", format ) );
+        }();
     }
     catch( ... )
     {

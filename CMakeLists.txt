@@ -173,6 +173,7 @@ if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" )
     if( CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.1 )
         message( FATAL_ERROR "GCC version must be at least 5.1!" )
     endif()
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wswitch" )
 elseif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
     ### Disable unnecessary warnings on Windows, such as C4996 and C4267, C4244
     ### Treat deprecation as a warning: /w34996

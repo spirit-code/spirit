@@ -143,11 +143,11 @@ try
             {
                 case MC_Algorithm::Metropolis: return dispatcher( algorithm_tag<MC_Algorithm::Metropolis>{} );
                 case MC_Algorithm::Metropolis_MDC: return dispatcher( algorithm_tag<MC_Algorithm::Metropolis_MDC>{} );
-                default:
-                    spirit_throw(
-                        Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Warning,
-                        fmt::format( "Invalid mc_algorithm {}", mc_algorithm ) );
+                case MC_Algorithm::None:;
             }
+            spirit_throw(
+                Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Warning,
+                fmt::format( "Invalid mc_algorithm {}", mc_algorithm ) );
         }();
 
         state->method_image[idx_image] = method;
@@ -221,11 +221,11 @@ try
                 case Solver::LBFGS_OSO: return dispatcher( solver_tag<Solver::LBFGS_OSO>{} );
                 case Solver::LBFGS_Atlas: return dispatcher( solver_tag<Solver::LBFGS_Atlas>{} );
                 case Solver::VP_OSO: return dispatcher( solver_tag<Solver::VP_OSO>{} );
-                default:
-                    spirit_throw(
-                        Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Warning,
-                        fmt::format( "Invalid solver_type {}", solver_type ) );
+                case Solver::None:;
             }
+            spirit_throw(
+                Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Warning,
+                fmt::format( "Invalid solver_type {}", solver_type ) );
         }();
 
         state->method_image[idx_image] = method;
@@ -312,11 +312,12 @@ try
                     case Solver::LBFGS_OSO: return dispatcher( solver_tag<Solver::LBFGS_OSO>{} );
                     case Solver::LBFGS_Atlas: return dispatcher( solver_tag<Solver::LBFGS_Atlas>{} );
                     case Solver::VP_OSO: return dispatcher( solver_tag<Solver::VP_OSO>{} );
-                    default:
-                        spirit_throw(
-                            Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Warning,
-                            fmt::format( "Invalid solver_type {}", solver_type ) );
+                    case Solver::None: [[fallthrough]];
+                    case Solver::RungeKutta4:;
                 }
+                spirit_throw(
+                    Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Warning,
+                    fmt::format( "Invalid solver_type {}", solver_type ) );
             }();
 
             state->method_chain = method;
@@ -387,11 +388,15 @@ try
                 case Solver::Depondt: return dispatcher( solver_tag<Solver::Depondt>{} );
                 // case Solver::NCG: return dispatcher( solver_tag<Solver::NCG>{} );
                 case Solver::VP: return dispatcher( solver_tag<Solver::VP>{} );
-                default:
-                    spirit_throw(
-                        Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Warning,
-                        fmt::format( "Invalid solver_type {}", solver_type ) );
+                case Solver::None: [[fallthrough]];
+                case Solver::LBFGS_Atlas: [[fallthrough]];
+                case Solver::LBFGS_OSO: [[fallthrough]];
+                case Solver::VP_OSO: [[fallthrough]];
+                case Solver::RungeKutta4:;
             }
+            spirit_throw(
+                Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Warning,
+                fmt::format( "Invalid solver_type {}", solver_type ) );
         }();
 
         state->method_image[idx_image] = method;
