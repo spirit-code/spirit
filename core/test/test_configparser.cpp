@@ -1,7 +1,9 @@
 #include <Spirit/Configurations.h>
 #include <Spirit/Constants.h>
 #include <Spirit/Hamiltonian.h>
+#include <Spirit/Legacy.h>
 #include <Spirit/Parameters_EMA.h>
+#include <Spirit/Parameters_GNEB.h>
 #include <Spirit/Parameters_MMF.h>
 #include <Spirit/Simulation.h>
 #include <Spirit/State.h>
@@ -708,5 +710,30 @@ TEST_CASE( "Parameters MMF: Parse config and check parsed values using the C-API
     {
         REQUIRE_THAT( Parameters_MMF_Get_Output_Tag( state.get() ), Equals( "test_configparser_mmf" ) );
         REQUIRE_THAT( Parameters_MMF_Get_Output_Folder( state.get() ), Equals( "output" ) );
+    }
+}
+
+TEST_CASE( "Legacy config: converted TOML keeps the pairs file and the GNEB parameters", "[configparser]" )
+{
+    static constexpr auto legacy_file = "core/test/input/configconverter.cfg";
+    static constexpr auto toml_file   = "core/test/io_test_files/configconverter.toml";
+
+    Legacy_Convert_Config_to_TOML( legacy_file, toml_file );
+
+    auto state = std::shared_ptr<State>( State_Setup( toml_file ), State_Delete );
+    REQUIRE( state != nullptr );
+
+    SECTION( "Pairs read from interaction_pairs_file" )
+    {
+        // Two spins, one bond with J = 1.5 meV, all spins along +z: E = -J
+        Configuration_PlusZ( state.get() );
+        System_Update_Energy( state.get() );
+        REQUIRE_THAT( System_Get_Energy( state.get() ), WithinAbs( -1.5, epsilon_2 ) );
+    }
+
+    SECTION( "GNEB parameters" )
+    {
+        REQUIRE_THAT( Parameters_GNEB_Get_Spring_Constant( state.get() ), WithinAbs( 1.5, epsilon_2 ) );
+        REQUIRE( Parameters_GNEB_Get_N_Energy_Interpolations( state.get() ) == 7 );
     }
 }
