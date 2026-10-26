@@ -1,0 +1,2 @@
+i j   da db dc    Jij
+0 0    1  0  0    1.5
