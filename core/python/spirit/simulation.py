@@ -15,7 +15,6 @@ import ctypes
 ### Load Library
 from spirit.spiritlib import _spirit
 
-
 ###     We use a thread for PlayPause, so that KeyboardInterrupt can be forwarded to the CDLL call
 ###     We might want to think about using PyDLL and about a signal handler in the core library
 ###     see here: http://stackoverflow.com/questions/14271697/ctrlc-doesnt-interrupt-call-to-shared-library-using-ctypes-in-python
@@ -201,7 +200,7 @@ def start(
     """Start any kind of iterative calculation method.
 
     - `method_type`: one of the integers defined above
-    - `solver_type`: only used for LLG, GNEB and MMF methods (default: None)
+    - `solver_type`: used for MC, LLG, GNEB and MMF methods (default: None)
     - `n_iterations`: the maximum number of iterations that will be performed (default: take from parameters)
     - `n_iterations_log`: the number of iterations after which to log the status and write output (default: take from parameters)
     - `single_shot`: if set to `True`, iterations have to be triggered individually
