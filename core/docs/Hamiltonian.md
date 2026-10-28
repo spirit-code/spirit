@@ -267,9 +267,9 @@ If the `Jij` or `Dij` keywords used for shells are present the associated column
 
 ## Two-Site Anisotropy
 
-![Two-Site Anisotropy](https://math.vercel.app/?bgcolor=auto&from=%5Cmathcal%7BH%7D_%7BA%5E2%7D%5B%5Cvec%7Bn%7D%5D%20%3D%20-%5Csum_%7B%5Cbraket%7Bij%7D%7D%20%5Cvec%7Bn%7D_i%20%5Ccdot%20K_%7Bij%7D%20%5Cvec%7Bn%7D_i.svg)
+![Two-Site Anisotropy](https://math.vercel.app/?bgcolor=auto&from=%5Cmathcal%7BH%7D_%7BA%5E2%7D%5B%5Cvec%7Bn%7D%5D%20%3D%20-%5Csum_%7B%5Cbraket%7Bij%7D%7D%20%5Cvec%7Bn%7D_i%20%5Ccdot%20K_%7Bij%7D%20%5Cvec%7Bn%7D_j.svg)
 
-<!-- \mathcal{H}_{A^2}[\vec{n}] = -\sum_{\braket{ij}} \vec{n}_i \cdot K_{ij} \vec{n}_i -->
+<!-- \mathcal{H}_{A^2}[\vec{n}] = -\sum_{\braket{ij}} \vec{n}_i \cdot K_{ij} \vec{n}_j -->
 
 
 The Two-Site Anisotropy interaction covers the symmetric, traceless part of the two-site interaction tensor.
