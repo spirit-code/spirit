@@ -1,0 +1,14 @@
+diff --git a/core/test/catch.hpp b/core/test/catch.hpp
+index 36eaeb27..8fc3f787 100644
+--- a/core/test/catch.hpp
++++ b/core/test/catch.hpp
+@@ -954,6 +954,9 @@ namespace mpl_{
+ }
+ 
+ // end catch_meta.hpp
++
++#include <new>
++
+ namespace Catch {
+ 
+ template<typename C>

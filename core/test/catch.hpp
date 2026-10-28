@@ -954,6 +954,9 @@ namespace mpl_{
 }
 
 // end catch_meta.hpp
+
+#include <new>
+
 namespace Catch {
 
 template<typename C>
