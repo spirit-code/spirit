@@ -484,7 +484,7 @@ template <typename OutputIt>
 inline FMT_CONSTEXPR auto get_container(OutputIt it) ->
     typename OutputIt::container_type& {
   struct accessor : OutputIt {
-    constexpr accessor(OutputIt base) : OutputIt(base) {}
+    FMT_CONSTEXPR20 accessor(OutputIt base) : OutputIt(base) {}
     using OutputIt::container;
   };
   return *accessor(it).container;

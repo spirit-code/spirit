@@ -1,0 +1,27 @@
+diff --git a/thirdparty/fmt/include/fmt/base.h b/thirdparty/fmt/include/fmt/base.h
+index 5d0241c8..e37840e0 100644
+--- a/thirdparty/fmt/include/fmt/base.h
++++ b/thirdparty/fmt/include/fmt/base.h
+@@ -484,7 +484,7 @@ template <typename OutputIt>
+ inline FMT_CONSTEXPR auto get_container(OutputIt it) ->
+     typename OutputIt::container_type& {
+   struct accessor : OutputIt {
+-    constexpr accessor(OutputIt base) : OutputIt(base) {}
++    FMT_CONSTEXPR20 accessor(OutputIt base) : OutputIt(base) {}
+     using OutputIt::container;
+   };
+   return *accessor(it).container;
+diff --git a/thirdparty/fmt/include/fmt/format.h b/thirdparty/fmt/include/fmt/format.h
+index 5044befd..57062792 100644
+--- a/thirdparty/fmt/include/fmt/format.h
++++ b/thirdparty/fmt/include/fmt/format.h
+@@ -326,6 +326,9 @@ class uint128 {
+       -> uint128 {
+     return {lhs.hi_ & rhs.hi_, lhs.lo_ & rhs.lo_};
+   }
++  friend constexpr auto operator~(const uint128& n) -> uint128 {
++    return {~n.hi_, ~n.lo_};
++  }
+   friend FMT_CONSTEXPR auto operator+(const uint128& lhs, const uint128& rhs)
+       -> uint128 {
+     auto result = uint128(lhs);
