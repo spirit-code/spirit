@@ -142,15 +142,23 @@ jobs:
           echo "/usr/local/cuda-12.5/bin" >> $GITHUB_PATH
           echo "/usr/local/cuda-12.5/lib64" >> $GITHUB_PATH
 
-      # Workaround, because the setup-python action doesn't set up the PATH correctly
+      # compared to homebrew micromamba only ships one libomp
       - name: Install LLVM and numpy (MacOS)
+        uses: mamba-org/setup-micromamba@v3
+        if: matrix.os == 'macos-15'
+        with:
+          environment-name: llvm-openmp
+          init-shell: bash
+          create-args: >-
+            python=3.13
+            clangxx
+            llvm-openmp
+            numpy
+
+      - name: Activate the environment in all later steps (MacOS)
         if: matrix.os == 'macos-15'
         shell: bash
-        run: |
-          brew update
-          brew install llvm numpy
-          echo "/usr/local/opt/llvm/bin" >> $GITHUB_PATH
-          echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+        run: echo "BASH_ENV=$HOME/.bash_profile" >> "$GITHUB_ENV"
 
       - name: Install LLVM and Ninja (Windows)
         if: matrix.os == 'windows-2022'
