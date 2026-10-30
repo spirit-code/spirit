@@ -35,7 +35,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y xorg-dev libglu1-mesa-dev libgtk-3-dev
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.x'
 
@@ -167,7 +167,7 @@ jobs:
           choco install llvm ninja -y
           choco upgrade llvm
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         if: matrix.os != 'macos-15'
         with:
           python-version: '3.x'
@@ -288,7 +288,7 @@ jobs:
           sudo rm -rf /usr/local/share/boost
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.x'
 
@@ -352,7 +352,7 @@ jobs:
       - name: Create build folder
         run: cmake -E make_directory ${{runner.workspace}}/build
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.x'
 
@@ -394,7 +394,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.x'
 
@@ -442,7 +442,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.x'
 
@@ -621,7 +621,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.x'
 
