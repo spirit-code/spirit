@@ -19,7 +19,7 @@ jobs:
       EMSCRIPTEN_VERSION: '3.1.38'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install Emscripten
         working-directory: ${{runner.workspace}}

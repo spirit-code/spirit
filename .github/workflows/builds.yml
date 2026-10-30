@@ -27,7 +27,7 @@ jobs:
       OMP_NUM_THREADS: 4
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install required system packages
         if: matrix.os == 'ubuntu-22.04'
@@ -119,7 +119,7 @@ jobs:
       OMP_NUM_THREADS: 4
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install LLVM 17 and some libs (Ubuntu)
         if: matrix.os == 'ubuntu-24.04'
@@ -256,7 +256,7 @@ jobs:
       OMP_NUM_THREADS: 4
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Force upgrade to gcc-12 on Ubuntu 22.04
         if: matrix.os == 'ubuntu-22.04'
@@ -347,7 +347,7 @@ jobs:
         -DSPIRIT_BUILD_TEST=ON
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Create build folder
         run: cmake -E make_directory ${{runner.workspace}}/build
@@ -392,7 +392,7 @@ jobs:
       EXCLUDETESTS: solver
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v5
         with:
@@ -440,7 +440,7 @@ jobs:
         -DSPIRIT_BUILD_TEST=ON
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v5
         with:
@@ -515,7 +515,7 @@ jobs:
         -DSPIRIT_CUDA_ARCH=70
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Force downgrade to gcc-10 on Ubuntu 22.04 to avoid a bug in gcc-11.3 header
         if: matrix.config.os == 'ubuntu-22.04'
@@ -569,7 +569,7 @@ jobs:
       CMAKE_FLAGS_IMGUI: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install Qt5
         if: ${{ matrix.ui == 'QT' }}
@@ -619,7 +619,7 @@ jobs:
         ${{ matrix.demo == 'empty' && '' || '--demo' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v5
         with:

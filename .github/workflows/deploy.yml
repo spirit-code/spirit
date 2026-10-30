@@ -15,7 +15,7 @@ jobs:
       CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_BUNDLE_APP=ON
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install required system packages
         if: matrix.os == 'ubuntu-latest'
