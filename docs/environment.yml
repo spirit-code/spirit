@@ -12,6 +12,6 @@ dependencies:
   - sphinx-design
   - myst-parser
   - doxygen
-  - breathe
+  - breathe>=4.17
   - numpy
   - cmake>=3.20
