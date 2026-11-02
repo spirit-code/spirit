@@ -9,7 +9,7 @@ version: 2
 build:
   os: ubuntu-24.04
   tools:
-    python: "mambaforge-23.11"
+    python: "miniforge3-26.3"
   jobs:
     pre_create_environment:
       - conda update --yes --quiet --name=base --channel=conda-forge conda
