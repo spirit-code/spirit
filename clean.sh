@@ -2,7 +2,7 @@
 
 set -e
 
-clean_log=0
+clean_logs=0
 clean_docs=0
 clean_output=0
 clean_build=0
@@ -14,7 +14,7 @@ Options / suffixes:
   build            clean build files (default when no args given)
   output           clean output files
   docs             clean docs files
-  log              clean log files
+  logs             clean log files
   all              clean everything
   -h, --help       show this help
 Examples:
@@ -32,9 +32,9 @@ else while [ $# -gt 0 ]; do
         build) clean_build=1 ;;
         output) clean_output=1 ;;
         docs) clean_docs=1 ;;
-        log) clean_log=1 ;;
+        logs|log) clean_log=1 ;;
         all)
-          clean_build=1; clean_output=1; clean_docs=1; clean_log=1
+          clean_build=1; clean_output=1; clean_docs=1; clean_logs=1
           ;;
         *) echo "Unknown target: $1" >&2; exit 2 ;;
     esac
@@ -42,7 +42,7 @@ else while [ $# -gt 0 ]; do
 done
 fi
 
-if [ "$clean_log" -ne 0 ]; then
+if [ "$clean_logs" -ne 0 ]; then
     rm Log*.txt
 fi
 
