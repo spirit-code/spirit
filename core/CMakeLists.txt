@@ -99,6 +99,9 @@ endif()
 
 ######### Meta information #########################################
 #----- Get git revision
+if( NOT GIT_FOUND )
+    find_package( Git QUIET )
+endif()
 include( GetGitRevisionDescription )
 get_git_head_revision( GIT_REFSPEC GIT_SHA1 )
 string( SUBSTRING "${GIT_SHA1}" 0 10 GIT_REV )
