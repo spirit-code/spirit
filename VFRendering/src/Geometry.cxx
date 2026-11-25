@@ -70,7 +70,7 @@ const std::vector<std::array<Geometry::index_type, 4>>& Geometry::volumeIndices(
         const std::vector<glm::dvec3> dpositions(m_positions.cbegin(), m_positions.cend());
 
         ::orgQhull::Qhull qhull;
-        qhull.runQhull("", 3, dpositions.size(), &(dpositions[0].x), "qhull d Qt Qbb Qz");
+        qhull.runQhull("", 3, dpositions.size(), &(dpositions[0].x), "d Qt Qbb Qz");
 
         // copy results
         for (auto facet : qhull.facetList()) {
